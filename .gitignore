@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+# build products
+build
