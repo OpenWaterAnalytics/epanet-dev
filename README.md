@@ -11,9 +11,18 @@ The last major update to EPANET, version 2.0, was made in 2000. Since that time 
 
 EPANET 2 was originally developed by the U.S. Environmental Protection Agency (USEPA) and placed in the public domain. The new version being developed by this project represents an independent effort that is part of the [Open Source EPANET Initiative](http://community.wateranalytics.org/t/announcement-of-an-open-source-epanet-initiative/117) and is neither supported nor endorsed by USEPA.
 
-## Installation
+## Building & Installation
 
-The source code can be compiled to either a stand alone executable or to a shared library whose functions are defined in the header epanet3.h. Any C++ compiler that supports the C++11 language standard can be used.
+The source code can be compiled as a static or shared library, and a command-line application is included as well. Any C++ compiler that supports the C++11 language standard can be used.
+
+To build using CMake on Linux/Mac:
+
+```
+mkdir build && cd build
+cmake .. && make
+cd bin
+./run-epanet3 input.inp report.txt
+```
 
 ## API Reference
 
