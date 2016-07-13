@@ -1,0 +1,14 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+before_script:
+  - mkdir build && cd build && cmake ..
+
+script:
+  - make
+  - cd bin
+  - ./run-epanet3 net3.inp net3-rpt.txt
+
