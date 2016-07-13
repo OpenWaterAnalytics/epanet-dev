@@ -1,3 +1,6 @@
+[![Build Status](https://api.travis-ci.org/OpenWaterAnalytics/epanet-dev.svg)](https://travis-ci.org/OpenWaterAnalytics/epanet-dev)
+
+
 # epanet-dev
 
 This is a collaborative project to develop a new version of the EPANET computational engine for analyzing water distribution systems.
