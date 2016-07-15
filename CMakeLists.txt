@@ -19,7 +19,7 @@ src/Core/options.cpp		src/Elements/reservoir.cpp	src/Output/projectwriter.cpp
 src/Core/project.cpp		src/Elements/tank.cpp		src/Output/reportfields.cpp
 src/Core/qualbalance.cpp	src/Elements/valve.cpp		src/Output/reportwriter.cpp
 src/Core/qualengine.cpp		src/Input/controlparser.cpp	src/Utilities/graph.cpp
-src/Core/units.cpp		src/Input/curveparser.cpp	src/Utilities/hashtable.cpp
+src/Core/units.cpp		src/Input/curveparser.cpp	
 src/Elements/control.cpp	src/Input/inputparser.cpp	src/Utilities/mempool.cpp
 src/Elements/curve.cpp		src/Input/inputreader.cpp	src/Utilities/segpool.cpp
 src/Elements/demand.cpp		src/Input/linkparser.cpp	src/Utilities/utilities.cpp

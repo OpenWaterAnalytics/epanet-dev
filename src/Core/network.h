@@ -15,11 +15,11 @@
 #include "Core/units.h"
 #include "Core/qualbalance.h"
 #include "Elements/element.h"
-#include "Utilities/hashtable.h"
 #include "Utilities/graph.h"
 
 #include <vector>
 #include <ostream>
+#include <map>
 
 class Node;
 class Link;
@@ -114,11 +114,11 @@ class Network
   private:
 
     // Hash tables that associate an element's ID name with its storage index.
-    HashTable      nodeTable;     //!< hash table for node ID names.
-    HashTable      linkTable;     //!< hash table for link ID names.
-    HashTable      curveTable;    //!< hash table for curve ID names.
-    HashTable      patternTable;  //!< hash table for pattern ID names.
-    HashTable      controlTable;  //!< hash table for control ID names.
+    std::map<std::string, Element*>      nodeTable;     //!< hash table for node ID names.
+    std::map<std::string, Element*>      linkTable;     //!< hash table for link ID names.
+    std::map<std::string, Element*>      curveTable;    //!< hash table for curve ID names.
+    std::map<std::string, Element*>      patternTable;  //!< hash table for pattern ID names.
+    std::map<std::string, Element*>      controlTable;  //!< hash table for control ID names.
     MemPool *      memPool;       //!< memory pool for network objects
 };
 
