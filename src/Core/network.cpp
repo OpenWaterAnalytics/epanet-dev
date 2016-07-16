@@ -108,29 +108,29 @@ int Network::count(Element::ElementType eType)
 int Network::indexOf(Element::ElementType eType, const string& name)
 {
     Element* e = nullptr;
-    map<string,Element*> table;
+    map<string,Element*> *table;
     switch(eType)
     {
     case Element::NODE:
-        table = nodeTable;
+        table = &nodeTable;
         break;
     case Element::LINK:
-        table = linkTable;
+        table = &linkTable;
         break;
     case Element::PATTERN:
-        table = patternTable;
+        table = &patternTable;
         break;
     case Element::CURVE:
-        table = curveTable;
+        table = &curveTable;
         break;
     case Element::CONTROL:
-        table = controlTable;
+        table = &controlTable;
         break;
     default:
         return -1;
     }
-    auto it = table.find(name);
-    if (it != table.end()) {
+    auto it = table->find(name);
+    if (it != table->end()) {
       return it->second->index;
     }
   
