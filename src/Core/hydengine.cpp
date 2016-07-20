@@ -25,6 +25,7 @@
 #include "Utilities/utilities.h"
 
 #include <iostream>
+#include <algorithm>
 #include <iomanip>
 #include <string>
 #include <vector>

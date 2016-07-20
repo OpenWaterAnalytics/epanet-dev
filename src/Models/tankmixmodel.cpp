@@ -12,6 +12,8 @@
 #include "Utilities/segpool.h"
 
 #include <cmath>
+#include <algorithm>
+
 using namespace std;
 
 const char* TankMixModel::MixingModelWords[] = {"MIXED", "2COMP", "FIFO", "LIFO", 0};

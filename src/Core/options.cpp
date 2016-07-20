@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <iomanip>
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

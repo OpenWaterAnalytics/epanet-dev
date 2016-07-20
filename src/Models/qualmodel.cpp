@@ -14,6 +14,7 @@
 #include "Utilities/utilities.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 static const double Small =  1.E-6;

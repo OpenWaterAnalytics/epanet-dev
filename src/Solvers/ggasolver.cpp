@@ -24,6 +24,7 @@
 #include <cmath>
 #include <iostream>   //for debugging
 #include <iomanip>
+#include <algorithm>
 using namespace std;
 
 static const string s_Trial          = "          Trial ";
