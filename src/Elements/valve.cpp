@@ -13,6 +13,7 @@
 #include "Models/headlossmodel.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 const char* Valve::ValveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV"};

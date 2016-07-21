@@ -13,6 +13,7 @@
 #include "Utilities/mempool.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

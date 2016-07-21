@@ -22,6 +22,8 @@
 
 #include <cmath>
 #include <cstring>
+#include <algorithm>
+
 using namespace std;
 
 //  Constructor
