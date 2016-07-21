@@ -33,7 +33,7 @@ to build projects on Windows.  Visual Studio 2015 does not install C++
 development tools by default. Instructions for adding them are 
 [here](https://blogs.msdn.microsoft.com/vcblog/2015/07/24/setup-changes-in-visual-studio-2015-affecting-c-developers/). 
 To build the project, open a developer command prompt for VS 2015, navigate 
-to the project root directory, and follow the following commands.   
+to the project root directory, and follow the commands:
 
 ```
 mkdir build && cd build
@@ -51,7 +51,7 @@ To build using CMake on Windows, make sure that the programs CMake, make and the
 C++ compiler are installed and accessible from your system PATH.
 The compiler is available as part of MinGW which can be installed with
 [MSYS](http://www.mingw.org/wiki/msys).
-Typing cmake, make, and g++ at a command prompt should result in a message from
+Typing `cmake`, `make`, and `g++` at a command prompt should result in a message from
 each program rather than an error like " 'make' is not recognized ...".
 Building on windows then follows almost the same steps as for Linux/Mac: 
 
