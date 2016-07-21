@@ -5,12 +5,13 @@ SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 project (EPANET)
 SET (CMAKE_C_FLAGS "-std=c99")
 if(MSVC)
-# /I. is apparebtly needed so MSVC can find the generated export header
+# /I. is needed so MSVC can find the generated export header
 # /Wall generated MANY warnings.  Defaulting to level 4, excluding C4100 (unreferenced formal parameter)
 # and enabling C4571, C4263, and C4264 
 SET (CMAKE_CXX_FLAGS "/W4 /wd4100 /w44571 /w44263 /w44264 /I.")
 else()
-SET (CMAKE_CXX_FLAGS "-Wall -std=c++11")
+# -I. is needed so gcc can find the generated export header
+SET (CMAKE_CXX_FLAGS "-Wall -std=c++11 -I.")
 endif(MSVC)
 
 include (GenerateExportHeader)
