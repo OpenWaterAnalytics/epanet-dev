@@ -24,10 +24,16 @@ cd bin
 ./run-epanet3 input.inp report.txt
 ```
 ### Windows & Visual Studio 
+To build using CMake on Windows, make sure that CMake is installed and
+accessible from the system PATH. Typing `cmake` at a command prompt should
+result in a message from the program and not an error like " 'cmake' is not
+recognized ...".  By default, CMake uses the latest version of 
 [Visual Studio](https://www.visualstudio.com/en-us/visual-studio-homepage-vs.aspx)
 to build projects on Windows.  Visual Studio 2015 does not install C++ 
 development tools by default. Instructions for adding them are 
 [here](https://blogs.msdn.microsoft.com/vcblog/2015/07/24/setup-changes-in-visual-studio-2015-affecting-c-developers/). 
+To build the project, open a developer command prompt for VS 2015, navigate 
+to the project root directory, and follow the following commands.   
 
 ```
 mkdir build && cd build
