@@ -4,7 +4,16 @@ SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 project (EPANET)
 SET (CMAKE_C_FLAGS "-std=c99")
+if(MSVC)
+# /I. is apparebtly needed so MSVC can find the generated export header
+# /Wall generated MANY warnings.  Defaulting to level 4, excluding C4100 (unreferenced formal parameter)
+# and enabling C4571, C4263, and C4264 
+SET (CMAKE_CXX_FLAGS "/W4 /wd4100 /w44571 /w44263 /w44264 /I.")
+else()
 SET (CMAKE_CXX_FLAGS "-Wall -std=c++11")
+endif(MSVC)
+
+include (GenerateExportHeader)
 
 SET (epanet_lib_sources src/Elements/junction.cpp
 src/Input/patternparser.cpp
@@ -33,6 +42,13 @@ src/Solvers/hydsolver.cpp	src/Solvers/matrixsolver.cpp	src/Solvers/sparspak.cpp
 include_directories(src src/Core src/Elements src/Input src/Output src/Utilities src/Solvers)
 
 add_library(epanet3 SHARED ${epanet_lib_sources})
+
+GENERATE_EXPORT_HEADER( epanet3
+             BASE_NAME epanet3
+             EXPORT_MACRO_NAME epanet3_EXPORT
+             EXPORT_FILE_NAME epanet3_Export.h
+             STATIC_DEFINE epanet3_BUILT_AS_STATIC
+)
 
 add_executable(run-epanet3 src/CLI/main.cpp)
 target_link_libraries(run-epanet3 LINK_PUBLIC epanet3)
