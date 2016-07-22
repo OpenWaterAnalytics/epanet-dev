@@ -8,8 +8,6 @@
 #ifndef EPANET3_H_
 #define EPANET3_H_
 
-#include "epanet3_Export.h"
-
 //************************************
 //  EPANET 3's API FUNCTION LIBRARY  *
 //************************************
@@ -173,7 +171,7 @@ extern "C" {
 #endif
 
 int        EN_getVersion(int *);
-epanet3_EXPORT int        EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile);
+int        EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile);
 
 EN_Project EN_createProject();
 int        EN_cloneProject(EN_Project pClone, EN_Project pSource);

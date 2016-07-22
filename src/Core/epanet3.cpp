@@ -41,7 +41,7 @@ int EN_getVersion(int* version)
 
 //-----------------------------------------------------------------------------
 
-epanet3_EXPORT int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
+int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
 {
     std::cout << "\n... EPANET Version 3.0\n";
 
