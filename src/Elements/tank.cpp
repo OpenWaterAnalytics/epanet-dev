@@ -11,6 +11,7 @@
 #include "Core/constants.h"
 #include "Core/error.h"
 
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

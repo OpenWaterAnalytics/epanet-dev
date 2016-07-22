@@ -13,6 +13,7 @@
 #include "Core/constants.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

@@ -9,6 +9,7 @@
 #include "Elements/junction.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

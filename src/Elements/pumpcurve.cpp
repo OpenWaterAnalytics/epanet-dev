@@ -11,6 +11,7 @@
 #include "Core/error.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 //-----------------------------------------------------------------------------

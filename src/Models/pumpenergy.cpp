@@ -14,6 +14,7 @@
 #include "Elements/curve.h"
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 static const double NO_FLOW = 2.23e-4;    // cfs ( = 0.1 gpm)
