@@ -37,14 +37,11 @@ to the project root directory, and follow the commands:
 
 ```
 mkdir build && cd build
-cmake -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE .. 
+cmake .. 
 msbuild ALL_BUILD.vcxproj
 cd bin\Debug
 run-epanet3 input.inp report.txt
 ```
-
-Further detail on the need for cmake flags are 
-[here](https://blog.kitware.com/create-dlls-on-windows-without-declspec-using-new-cmake-export-all-feature/).
 
 ### Windows & MSYS
 To build using CMake on Windows, make sure that the programs CMake, make and the g++ 
