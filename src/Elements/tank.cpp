@@ -77,19 +77,23 @@ void Tank::validate()
     //     covers range of depth limits
     if ( volCurve )
     {
-        if ( volCurve->size() < 2 ||
-             minHead - elev < volCurve->x(0) ||
-             maxHead - elev > volCurve->x(volCurve->size() - 1) )
+        if ( volCurve->size() < 2 )
         {
             throw NetworkError(NetworkError::INVALID_VOLUME_CURVE, name);
         }
+        double tankHead = volCurve->x(0) + elev;
+        minHead = max(minHead, tankHead);
+        tankHead = volCurve->x(volCurve->size() - 1) + elev;
+        maxHead = min(maxHead, tankHead);
      }
 
     // ... check for consistent depth limits
-    if ( maxHead < minHead || initHead < minHead || initHead > maxHead )
+    if ( maxHead < minHead )
     {
         throw NetworkError(NetworkError::INVALID_TANK_LEVELS, name);
     }
+    initHead = max(initHead, minHead);
+    initHead = min(initHead, maxHead);
 }
 
 //-----------------------------------------------------------------------------

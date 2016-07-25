@@ -320,6 +320,9 @@ void Options::adjustOptions()
 
     // ... rule time step cannot be greater than hydraulic time step
     timeOptions[RULE_STEP] = min(timeOptions[RULE_STEP], timeOptions[HYD_STEP]);
+
+    // ... make REPORT_STATUS true if REPORT_TRIALS is true
+    if ( indexOptions[REPORT_TRIALS] == true ) indexOptions[REPORT_STATUS] = true;
 }
 
 //-----------------------------------------------------------------------------
