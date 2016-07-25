@@ -12,10 +12,9 @@
 #define HASHTABLE_H_
 
 #include <string>
+#include <map>
 
 class Element;
-struct HashTableItem;
-typedef HashTableItem* HTitem;
 
 //! \class HashTable
 //! \brief A hash table for element ID names and their objects.
@@ -28,14 +27,13 @@ class HashTable
     HashTable();
     ~HashTable();
 
-    int      insert(std::string* key, Element* value);
+    void     insert(std::string* key, Element* value);
     Element* find(const std::string& key);
     size_t   getCount();
 
   private:
 
-    HTitem* ht;          // array of table entry pointers
-    size_t  count;       // number of entries in the hash table.
-    unsigned int  hash(const std::string& str);};
+    std::map<std::string, Element*> table;
+};
 
 #endif
