@@ -28,20 +28,20 @@
 #include <algorithm>
 using namespace std;
 
-static const string s_Trial          = "          Trial ";
-static const string s_IllConditioned = "          Hydraulic matrix ill-conditioned at node ";
-static const string s_StepSize       = "          Step Size   = ";
-static const string s_TotalError     = "          Error Norm  = ";
-static const string s_HlossEvals     = "          Head Loss Evaluations = ";
-static const string s_HeadError      = "          Head Error  = ";
+static const string s_Trial          = "    Trial ";
+static const string s_IllConditioned = "  Hydraulic matrix ill-conditioned at node ";
+static const string s_StepSize       = "    Step Size   = ";
+static const string s_TotalError     = "    Error Norm  = ";
+static const string s_HlossEvals     = "    Head Loss Evaluations = ";
+static const string s_HeadError      = "    Head Error  = ";
 static const string s_ForLink        = " for Link ";
-static const string s_FlowError      = "          Flow Error  = ";
+static const string s_FlowError      = "    Flow Error  = ";
 static const string s_AtNode         = " at Node ";
-static const string s_FlowChange     = "          Flow Change = ";
-static const string s_TotFlowChange  = "          Total Flow Change Ratio = ";
-static const string s_NodeLabel      = "          Node ";
-static const string s_FGChange       = " Fixed Grade Status changed to ";
-static const string s_FlowThresh     = "          Flow Threshold Reductions: ";
+static const string s_FlowChange     = "    Flow Change = ";
+static const string s_TotFlowChange  = "    Total Flow Change Ratio = ";
+static const string s_NodeLabel      = "  Node ";
+static const string s_FGChange       = "    Fixed Grade Status changed to ";
+static const string s_FlowThresh     = "    Flow Threshold Reductions: ";
 
 //-----------------------------------------------------------------------------
 
@@ -392,7 +392,7 @@ bool GGASolver::hasConverged()
 
 void GGASolver::reportTrial(int trials, double lamda)
 {
-    network->msgLog << endl << endl << s_Trial << trials << ":";
+    network->msgLog << endl << s_Trial << trials << ":";
     network->msgLog << endl << s_StepSize << lamda;
     network->msgLog << endl << s_TotalError << errorNorm;
 
@@ -427,7 +427,7 @@ void GGASolver::reportTrial(int trials, double lamda)
 
     // ... report total link flow change relative to total link flow
 
-    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange;
+    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange << endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -443,7 +443,7 @@ bool GGASolver::flowThresholdsReduced()
     }
     if ( reportTrials && count > 0 )
     {
-        network->msgLog << endl << s_FlowThresh << count;
+        network->msgLog << endl << s_FlowThresh << count << endl;
     }
     return (count > 0);
 }

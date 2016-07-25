@@ -133,7 +133,7 @@ bool Pump::changeSetting(double s, bool makeChange, const string reason, ostream
             if ( s == 0.0 ) status = Link::LINK_CLOSED;
             else            status = Link::LINK_OPEN;
             speed = s;
-            msgLog << reason;
+            msgLog << "\n  " << reason;
         }
         return true;
     }

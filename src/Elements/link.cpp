@@ -133,7 +133,7 @@ double Link::getUnitHeadLoss()
 string Link::writeStatusChange(int oldStatus)
 {
     stringstream ss;
-    ss << "          " << typeStr() << " " <<
+    ss << "    " << typeStr() << " " <<
 	    name << s_From << linkStatusWords[oldStatus] << s_To <<
 	    linkStatusWords[status];
     return ss.str();

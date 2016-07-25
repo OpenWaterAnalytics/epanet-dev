@@ -31,21 +31,21 @@
 #include <vector>
 using namespace std;
 
-static const string s_Balancing  = " Balancing the network:";
+//static const string s_Balancing  = " Balancing the network:";
 static const string s_Unbalanced =
-    " WARNING - network is unbalanced. Flows and pressures may not be correct.";
+    "  WARNING - network is unbalanced. Flows and pressures may not be correct.";
 static const string s_UnbalancedHalted =
-    " Network is unbalanced. Simulation halted by user.";
+    "  Network is unbalanced. Simulation halted by user.";
 static const string s_IllConditioned =
-    " Network is numerically ill-conditioned. Simulation halted.";
-static const string s_Balanced   = " Network balanced in ";
+    "  Network is numerically ill-conditioned. Simulation halted.";
+static const string s_Balanced   = "  Network balanced in ";
 static const string s_Trials     = " trials.";
 static const string s_Deficient  = " nodes were pressure deficient.";
 static const string s_ReSolve1   =
-    "\n          Re-solving network with these made fixed grade.\n";
+    "\n    Re-solving network with these made fixed grade.\n";
 static const string s_Reductions1 =  " nodes require demand reductions.";
 static const string s_ReSolve2    =
-    "\n          Re-solving network with these reductions made.\n\n";
+    "\n    Re-solving network with these reductions made.\n\n";
 static const string s_Reductions2 =
     " nodes require further demand reductions to 0.";
 
@@ -160,16 +160,16 @@ void HydEngine::init(bool initFlows)
 int  HydEngine::solve(int* t)
 {
     if ( engineState != HydEngine::INITIALIZED ) return 0;
+    if ( network->option(Options::REPORT_STATUS) )
+    {
+        network->msgLog << endl << "  Hour " << Utilities::getTime(currentTime);
+    }
 
     *t = currentTime;
     timeOfDay = (currentTime + startTime) % 86400;
     updateCurrentConditions();
 
-    if ( network->option(Options::REPORT_TRIALS) )
-    {
-        network->msgLog << endl << endl << "  " << Utilities::getTime(currentTime) <<
-            s_Balancing;
-    }
+    if ( network->option(Options::REPORT_TRIALS) )  network->msgLog << endl;
     int trials = 0;
     int statusCode = hydSolver->solve(hydStep, trials);
 
@@ -330,7 +330,7 @@ bool HydEngine::isPressureDeficient()
     }
     if ( count > 0 && network->option(Options::REPORT_TRIALS) )
     {
-        network->msgLog << "\n\n          " << count << s_Deficient;
+        network->msgLog << "\n    " << count << s_Deficient;
     }
     return (count > 0);
 }
@@ -370,8 +370,8 @@ int HydEngine::resolvePressureDeficiency(int& trials)
 
     if (reportTrials )
     {
-        network->msgLog << "\n\n          " << count1 << s_Reductions1;
-        network->msgLog << s_ReSolve2;
+        network->msgLog << "\n    " << count1 << s_Reductions1;
+        network->msgLog << s_ReSolve2 << "\n";
     }
     statusCode = hydSolver->solve(hydStep, trials3);
 
@@ -396,8 +396,8 @@ int HydEngine::resolvePressureDeficiency(int& trials)
     {
         if ( reportTrials )
         {
-            network->msgLog << "\n\n          " << count2 << s_Reductions2;
-            network->msgLog << s_ReSolve2;
+            network->msgLog << "\n    " << count2 << s_Reductions2;
+            network->msgLog << s_ReSolve2 << "\n";
         }
         statusCode = hydSolver->solve(hydStep, trials4);
     }
@@ -419,7 +419,7 @@ void HydEngine::reportDiagnostics(int statusCode, int trials)
 
     if ( network->option(Options::REPORT_STATUS) )
     {
-        network->msgLog << endl << endl << "  " << Utilities::getTime(currentTime);
+        network->msgLog << endl;
         switch (statusCode)
         {
         case HydSolver::SUCCESSFUL:
