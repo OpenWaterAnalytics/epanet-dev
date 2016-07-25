@@ -22,6 +22,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <limits>
 #include <iostream>   //for debugging
 #include <iomanip>
 #include <algorithm>
@@ -45,7 +46,8 @@ static const string s_FlowThresh     = "          Flow Threshold Reductions: ";
 //-----------------------------------------------------------------------------
 
 // error norm threshold for status checking
-static const double ErrorThreshold = 10.0;
+static const double ErrorThreshold = 1.0;
+static const double Huge = numeric_limits<double>::max();
 
 //-----------------------------------------------------------------------------
 
@@ -97,7 +99,7 @@ int GGASolver::solve(double tstep_, int& trials)
     bool statusChanged = true;
     bool converged = false;
 
-    errorNorm = 1.0e50;
+    errorNorm = Huge;
     hLossEvalCount = 0;
     tstep = tstep_;
     trials = 1;
@@ -161,7 +163,7 @@ int GGASolver::solve(double tstep_, int& trials)
         // ... check for convergence
 
         if ( reportTrials ) reportTrial(trials, lamda);
-        converged = (errorNorm < 1.0);
+        converged = hasConverged();
 
         // ... if close to convergence then check for any link status changes
 
@@ -193,18 +195,27 @@ void GGASolver::setConvergenceLimits()
     flowRatioLimit = network->option(Options::RELATIVE_ACCURACY);
 
     // ... tolerance in satisfying hydraulic balances
-    double hydTolerance = network->option(Options::HYD_TOLERANCE);
-    if ( hydTolerance == 0.0 && flowRatioLimit == 0.0 ) hydTolerance = 0.001;
-
-    // ... limit on head loss error
-    headErrLimit = hydTolerance / network->ucf(Units::LENGTH);
-
-    // ... limit on flow imbalance error
-    flowErrLimit = hydTolerance / network->ucf(Units::FLOW);
+    headErrLimit = network->option(Options::HEAD_TOLERANCE) /
+                   network->ucf(Units::LENGTH);
+    flowErrLimit = network->option(Options::FLOW_TOLERANCE) /
+                   network->ucf(Units::FLOW);
 
     // ... limit on largest flow change
-    flowChangeLimit = hydTolerance / network->ucf(Units::FLOW);
-}
+    flowChangeLimit = network->option(Options::FLOW_CHANGE_LIMIT) /
+                      network->ucf(Units::FLOW);
+
+    // ... use a default head error limit if need be
+    if ( flowRatioLimit == 0.0 && headErrLimit == 0.0 &&
+         flowErrLimit == 0.0 && flowChangeLimit == 0.0 )
+    {
+        headErrLimit = 0.005;
+    }
+
+    // ... convert missing limits to a huge number
+    if ( flowRatioLimit  == 0.0 ) flowRatioLimit  = Huge;
+    if ( headErrLimit    == 0.0 ) headErrLimit    = Huge;
+    if ( flowErrLimit    == 0.0 ) flowErrLimit    = Huge;
+    if ( flowChangeLimit == 0.0 ) flowChangeLimit = Huge;}
 
 //-----------------------------------------------------------------------------
 
@@ -351,18 +362,8 @@ double GGASolver::findStepSize(int trials)
 double GGASolver::findErrorNorm(double lamda)
 {
     hLossEvalCount++;
-    hydBalance.evaluate(lamda, (double*)&dH[0], (double*)&dQ[0],
-                        (double*)&xQ[0], network);
-    double norm = 0.0;
-    if ( headErrLimit > 0.0 )
-        norm = max(norm, hydBalance.maxHeadErr / headErrLimit);
-    if ( flowErrLimit > 0.0 )
-        norm = max(norm, hydBalance.maxFlowErr / flowErrLimit);
-    if ( flowChangeLimit > 0.0 )
-        norm = max(norm, hydBalance.maxFlowChange / flowChangeLimit);
-    if ( flowRatioLimit > 0.0 )
-        norm = max(norm, hydBalance.totalFlowChange / flowRatioLimit);
-    return norm;
+    return hydBalance.evaluate(lamda, (double*)&dH[0], (double*)&dQ[0],
+                                      (double*)&xQ[0], network);
 }
 
 //-----------------------------------------------------------------------------
@@ -373,6 +374,18 @@ void GGASolver::updateSolution(double lamda)
 {
     for (int i = 0; i < nodeCount; i++) network->node(i)->head += lamda * dH[i];
     for (int i = 0; i < linkCount; i++) network->link(i)->flow += lamda * dQ[i];
+}
+
+//-----------------------------------------------------------------------------
+
+//  Check if current solution meets convergence limits
+
+bool GGASolver::hasConverged()
+{
+    return ( hydBalance.maxHeadErr < headErrLimit ) &&
+           ( hydBalance.maxFlowErr < flowErrLimit ) &&
+           ( hydBalance.maxFlowChange < flowChangeLimit ) &&
+           ( hydBalance.totalFlowChange < flowRatioLimit );
 }
 
 //-----------------------------------------------------------------------------

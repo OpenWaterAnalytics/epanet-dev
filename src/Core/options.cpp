@@ -113,7 +113,9 @@ void Options::setDefaults()
     valueOptions[DEMAND_MULTIPLIER]        = 1.0;
 
     valueOptions[RELATIVE_ACCURACY]        = 0.0;
-    valueOptions[HYD_TOLERANCE]            = 0.0;
+    valueOptions[HEAD_TOLERANCE]           = 0.0;
+    valueOptions[FLOW_TOLERANCE]           = 0.0;
+    valueOptions[FLOW_CHANGE_LIMIT]        = 0.0;
     valueOptions[TIME_WEIGHT]              = 0.0;
 
     valueOptions[ENERGY_PRICE]             = 0.0;
@@ -345,8 +347,12 @@ string Options::hydOptionsToStr()
 
     s << setw(w) << "MAXIMUM_TRIALS";
     s << indexOptions[MAX_TRIALS] << "\n";
-    s << setw(w) << "HYDRAULIC_TOLERANCE";
-    s << valueOptions[HYD_TOLERANCE] << "\n";
+    s << setw(w) << "HEAD_TOLERANCE";
+    s << valueOptions[HEAD_TOLERANCE] << "\n";
+    s << setw(w) << "FLOW_TOLERANCE";
+    s << valueOptions[FLOW_TOLERANCE] << "\n";
+    s << setw(w) << "FLOW_CHANGE_LIMIT";
+    s << valueOptions[FLOW_CHANGE_LIMIT] << "\n";
     if ( valueOptions[RELATIVE_ACCURACY] > 0.0 )
     {
         s << setw(w) << "RELATIVE_ACCURACY";

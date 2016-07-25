@@ -68,6 +68,7 @@ class GGASolver : public HydSolver
     // Functions that check for convergence
     void   setConvergenceLimits();
     double findErrorNorm(double lamda);
+    bool   hasConverged();
     bool   linksChangedStatus();
     bool   flowThresholdsReduced();
     void   reportTrial(int trials, double lamda);

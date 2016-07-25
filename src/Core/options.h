@@ -102,7 +102,9 @@ class Options
 
         // Hydraulic tolerances
         RELATIVE_ACCURACY,     //!< sum of all |flow changes| / sum of all |flows|
-        HYD_TOLERANCE,         //!< Largest flow change for convergence
+        HEAD_TOLERANCE,        //!< Convergence tolerance for head loss balance
+        FLOW_TOLERANCE,        //!< Convergence tolerance for flow balance
+        FLOW_CHANGE_LIMIT,     //!< Max. flow change for convergence
         TIME_WEIGHT,           //!< Time weighting for variable head tanks
 
         // Water quality options
