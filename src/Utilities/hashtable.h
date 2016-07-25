@@ -24,9 +24,6 @@ class HashTable
 {
   public:
 
-    HashTable();
-    ~HashTable();
-
     void     insert(std::string* key, Element* value);
     Element* find(const std::string& key);
     size_t   getCount();
