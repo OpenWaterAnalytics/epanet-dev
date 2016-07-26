@@ -108,15 +108,32 @@ int Network::count(Element::ElementType eType)
 int Network::indexOf(Element::ElementType eType, const string& name)
 {
     Element* e = nullptr;
+    map<string,Element*> *table;
     switch(eType)
     {
-    case Element::NODE:    e = nodeTable.find(name);    break;
-    case Element::LINK:    e = linkTable.find(name);    break;
-    case Element::PATTERN: e = patternTable.find(name); break;
-    case Element::CURVE:   e = curveTable.find(name);   break;
-    case Element::CONTROL: e = controlTable.find(name); break;
+    case Element::NODE:
+        table = &nodeTable;
+        break;
+    case Element::LINK:
+        table = &linkTable;
+        break;
+    case Element::PATTERN:
+        table = &patternTable;
+        break;
+    case Element::CURVE:
+        table = &curveTable;
+        break;
+    case Element::CONTROL:
+        table = &controlTable;
+        break;
+    default:
+        return -1;
     }
-    if ( e ) return e->index;
+    auto it = table->find(name);
+    if (it != table->end()) {
+      return it->second->index;
+    }
+  
     return -1;
 }
 
@@ -124,7 +141,7 @@ int Network::indexOf(Element::ElementType eType, const string& name)
 
 Node* Network::node(const string& name)
 {
-    return static_cast<Node*>(nodeTable.find(name));
+    return static_cast<Node*>(nodeTable.find(name)->second);
 }
 
 Node* Network::node(const int index)
@@ -136,7 +153,7 @@ Node* Network::node(const int index)
 
 Link* Network::link(const string& name)
 {
-    return static_cast<Link*>(linkTable.find(name));
+    return static_cast<Link*>(linkTable.find(name)->second);
 }
 
 Link* Network::link(const int index)
@@ -148,7 +165,7 @@ Link* Network::link(const int index)
 
 Pattern* Network::pattern(const string& name)
 {
-    return static_cast<Pattern*>(patternTable.find(name));
+    return static_cast<Pattern*>(patternTable.find(name)->second);
 }
 
 Pattern* Network::pattern(const int index)
@@ -160,7 +177,7 @@ Pattern* Network::pattern(const int index)
 
 Curve* Network::curve(const string& name)
 {
-    return static_cast<Curve*>(curveTable.find(name));
+    return static_cast<Curve*>(curveTable.find(name)->second);
 }
 
 Curve* Network::curve(const int index)
@@ -172,7 +189,7 @@ Curve* Network::curve(const int index)
 
 Control*  Network::control(const string& name)
 {
-    return static_cast<Control*>(controlTable.find(name));
+    return static_cast<Control*>(controlTable.find(name)->second);
 }
 
 Control* Network::control(const int index)
@@ -215,7 +232,7 @@ bool Network::addElement(Element::ElementType element, int type, string name)
         {
             Node* node = Node::factory(type, name, memPool);
             node->index = nodes.size();
-            nodeTable.insert(&(node->name), node);
+            nodeTable[node->name] = node;
             nodes.push_back(node);
         }
 
@@ -223,7 +240,7 @@ bool Network::addElement(Element::ElementType element, int type, string name)
         {
             Link* link = Link::factory (type, name, memPool);
             link->index = links.size();
-            linkTable.insert(&(link->name), link);
+            linkTable[link->name] = link;
             links.push_back(link);
         }
 
@@ -231,7 +248,7 @@ bool Network::addElement(Element::ElementType element, int type, string name)
         {
             Pattern* pattern = Pattern::factory(type, name, memPool);
             pattern->index = patterns.size();
-            patternTable.insert(&(pattern->name), pattern);
+            patternTable[pattern->name] = pattern;
             patterns.push_back(pattern);
         }
 
@@ -239,7 +256,7 @@ bool Network::addElement(Element::ElementType element, int type, string name)
         {
             Curve* curve = new(memPool->alloc(sizeof(Curve))) Curve(name);
             curve->index = curves.size();
-            curveTable.insert(&(curve->name), curve);
+            curveTable[curve->name] = curve;
             curves.push_back(curve);
         }
 
@@ -247,7 +264,7 @@ bool Network::addElement(Element::ElementType element, int type, string name)
         {
             Control* control = new(memPool->alloc(sizeof(Control))) Control(type, name);
             control->index = controls.size();
-            controlTable.insert(&(control->name), control);
+            controlTable[control->name] = control;
             controls.push_back(control);
         }
         return true;
