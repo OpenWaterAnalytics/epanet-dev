@@ -23,7 +23,7 @@ static const string s_To =   " to ";
 static const string linkStatusWords[] = {"CLOSED", "OPEN", "ACTIVE", "TEMP_CLOSED"};
 
 static const double ZERO_FLOW = 1.0e-6;       //!< flow in closed link (cfs)
-static const double RE_THRESH = 100;          //!< threshold Reynolds Number
+static const double RE_THRESH = 200;          //!< threshold Reynolds Number
 static const double MIN_THRESH = 1.0e-6;      //!< minimum flow threshold (cfs)
 
 //-----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ double Link::getUnitHeadLoss()
 string Link::writeStatusChange(int oldStatus)
 {
     stringstream ss;
-    ss << "          " << typeStr() << " " <<
+    ss << "    " << typeStr() << " " <<
 	    name << s_From << linkStatusWords[oldStatus] << s_To <<
 	    linkStatusWords[status];
     return ss.str();

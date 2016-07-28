@@ -101,7 +101,9 @@ void ReportWriter::writeSummary(string inpFileName)
     sout << "\n  Demand Model .................. " << network->option(Options::DEMAND_MODEL);
     sout << "\n  Demand Multiplier ............. " << network->option(Options::DEMAND_MULTIPLIER);
     sout << "\n  Number of Emitters ............ " << nEmitters;
-    sout << "\n  Hydraulic Tolerance ........... " << network->option(Options::HYD_TOLERANCE);
+    sout << "\n  Head Tolerance ................ " << network->option(Options::HEAD_TOLERANCE);
+    sout << "\n  Flow Tolerance ................ " << network->option(Options::FLOW_TOLERANCE);
+    sout << "\n  Flow Change Limit ............. " << network->option(Options::FLOW_CHANGE_LIMIT);
 
     sout << "\n  Quality Model ................. " << network->option(Options::QUAL_MODEL);
     if ( network->option(Options::QUAL_TYPE) == Options::TRACE )
