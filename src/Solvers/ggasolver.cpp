@@ -16,6 +16,7 @@
 #include "ggasolver.h"
 #include "matrixsolver.h"
 #include "Core/network.h"
+#include "Core/constants.h"
 #include "Elements/junction.h"
 #include "Elements/tank.h"
 #include "Elements/link.h"
@@ -41,7 +42,6 @@ static const string s_FlowChange     = "    Flow Change = ";
 static const string s_TotFlowChange  = "    Total Flow Change Ratio = ";
 static const string s_NodeLabel      = "  Node ";
 static const string s_FGChange       = "    Fixed Grade Status changed to ";
-static const string s_FlowThresh     = "    Flow Threshold Reductions: ";
 
 //-----------------------------------------------------------------------------
 
@@ -114,14 +114,6 @@ int GGASolver::solve(double tstep_, int& trials)
 
     setConvergenceLimits();
 
-    // ... re-set flow thresholds for linear head loss
-
-    double viscos = network->option(Options::KIN_VISCOSITY);
-    for (Link* link : network->links)
-    {
-        link->setFlowThreshold(viscos);
-    }
-
     // ... perform Newton iterations
 
     while ( trials <= trialsLimit )
@@ -167,14 +159,14 @@ int GGASolver::solve(double tstep_, int& trials)
 
         // ... if close to convergence then check for any link status changes
 
-        if ( converged || errorNorm < ErrorThreshold )
+        if ( converged ) //|| errorNorm < ErrorThreshold )
         {
             statusChanged = linksChangedStatus();
         }
 
         // ... check if the current solution can be accepted
 
-        if ( converged && !statusChanged && !flowThresholdsReduced() ) break;
+        if ( converged && !statusChanged ) break;
         trials++;
     }
     //if ( reportTrials ) network->msgLog << s_HlossEvals << hLossEvalCount;
@@ -392,7 +384,7 @@ bool GGASolver::hasConverged()
 
 void GGASolver::reportTrial(int trials, double lamda)
 {
-    network->msgLog << endl << s_Trial << trials << ":";
+    network->msgLog << endl << endl << s_Trial << trials << ":";
     network->msgLog << endl << s_StepSize << lamda;
     network->msgLog << endl << s_TotalError << errorNorm;
 
@@ -427,25 +419,7 @@ void GGASolver::reportTrial(int trials, double lamda)
 
     // ... report total link flow change relative to total link flow
 
-    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange << endl;
-}
-
-//-----------------------------------------------------------------------------
-
-//  Check if any links need to have their flow thresholds reduced.
-
-bool GGASolver::flowThresholdsReduced()
-{
-    int  count = 0;
-    for (Link* link : network->links)
-    {
-        if ( link->reduceFlowThreshold() ) count++;
-    }
-    if ( reportTrials && count > 0 )
-    {
-        network->msgLog << endl << s_FlowThresh << count << endl;
-    }
-    return (count > 0);
+    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange;
 }
 
 //-----------------------------------------------------------------------------
@@ -645,6 +619,7 @@ bool GGASolver::linksChangedStatus()
             if ( link->fromNode->isClosed(q) || link->toNode->isClosed(-q) )
             {
                 link->status = Link::TEMP_CLOSED;
+                link->flow = ZERO_FLOW;
             }
         }
 
