@@ -33,7 +33,7 @@ void QualBalance::init(const double initMassStored)
 
 void QualBalance::writeBalance(ostream& msgLog)
 {
-    msgLog << "\n\n  Water Quality Mass Balance"
+    msgLog <<   "\n  Water Quality Mass Balance"
            <<   "\n  --------------------------";
     msgLog <<   "\n  Initial Storage           " << initMass / 1.e6;
     msgLog <<   "\n  Mass Inflow               " << inflowMass / 1.e6;
@@ -47,5 +47,5 @@ void QualBalance::writeBalance(ostream& msgLog)
     if ( massIn > 0.0 ) pctDiff = 100.0 * pctDiff / massIn;
     else if (massOut > 0.0 ) pctDiff = 100.0 * pctDiff / massOut;
     else pctDiff = 0.0;
-    msgLog <<   "\n  Percent Imbalance         " << pctDiff;
+    msgLog <<   "\n  Percent Imbalance         " << pctDiff << "\n";
 }

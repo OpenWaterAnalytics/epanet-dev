@@ -34,7 +34,7 @@ class Tank: public Node
 
     // Overridden virtual methods
     int    type() { return Node::TANK; }
-    void   validate();
+    void   validate(Network* nw);
     void   convertUnits(Network* nw);
     void   initialize(Network* nw);
     bool   isReactive() { return bulkCoeff != 0.0; }

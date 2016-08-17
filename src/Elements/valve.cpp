@@ -19,9 +19,6 @@ using namespace std;
 const char* Valve::ValveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV"};
 
 const double MIN_LOSS_COEFF = 0.1;     // default minor loss coefficient
-const double ZERO_FLOW = 0;            // zero flow equivalent (cfs)
-const double MIN_GRADIENT = 1.0e-6;    // zero head loss gradient (cfs/ft)
-const double HIGH_RESISTANCE = 1.0e8;  // infinite flow resistance
 
 //-----------------------------------------------------------------------------
 
@@ -229,16 +226,13 @@ void Valve::findHeadLoss(Network* nw, double q)
 
 void Valve::findOpenHeadLoss(double q)
 {
-    if ( abs(q) < flowThresh )
+    hGrad = 2.0 * lossFactor * abs(q);
+    if ( hGrad < MIN_GRADIENT )
     {
-        hGrad = lossFactor * flowThresh;
+        hGrad = MIN_GRADIENT;
         hLoss = hGrad * q;
     }
-    else
-    {
-        hGrad = 2.0 * lossFactor * abs(q);
-        hLoss = hGrad * q / 2.0;
-    }
+    else hLoss = hGrad * q / 2.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -367,7 +361,12 @@ void Valve::updateStatus(double q, double h1, double h2)
         default:  break;
     }
 
-    if ( newStatus != status ) status = newStatus;
+    if ( newStatus != status )
+    {
+        if ( newStatus == Link::LINK_CLOSED ) flow = ZERO_FLOW;
+        status = newStatus;
+
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -441,7 +440,7 @@ bool Valve::changeSetting(
         {
             hasFixedStatus = false;
             status = Link::LINK_OPEN;
-            msgLog << reason;
+            msgLog << "\n    " << reason;
             setting = newSetting;
         }
         return true;
@@ -460,9 +459,10 @@ bool Valve::changeStatus(
     {
         if ( makeChange )
         {
-            msgLog << "\n  " << reason;
+            msgLog << "\n    " << reason;
             status = newStatus;
             hasFixedStatus = true;
+            if ( status == LINK_CLOSED ) flow = ZERO_FLOW;
         }
         return true;
     }

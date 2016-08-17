@@ -208,6 +208,7 @@ void LTDSolver::release(int k)
     }
 
     // ... reconcile mass balance for mass outflow from an empty tank
+/*
     if ( node->type() == Node::TANK )
     {
         Tank* tank = static_cast<Tank *> (node);
@@ -217,7 +218,7 @@ void LTDSolver::release(int k)
             network->qualBalance.updateInflow(c * vNeeded);
         }
     }
-
+*/
     // ... case where link has a last (most upstream) segment
     Segment* seg = lastSegment[k];
     if ( seg )
@@ -377,7 +378,7 @@ double LTDSolver::findStoredMass()
         if ( node->type() == Node::TANK )
         {
   	        Tank * tank = static_cast<Tank *>(node);
-            totalMass += tank->mixingModel.storedMass();
+            totalMass += max(0.0, tank->mixingModel.storedMass());
         }
     }
     return totalMass;
@@ -393,7 +394,10 @@ void LTDSolver::updateMassBalance(double dt)
     {
         if ( node->type() == Node::JUNCTION &&  node->outflow > 0.0 )
         {
-            network->qualBalance.updateOutflow(node->quality * node->outflow * dt);
+            double vOut = node->outflow * dt;
+            double vIn = volIn[node->index];
+            if ( vIn < vOut ) vOut = max(0.0, vIn);
+            network->qualBalance.updateOutflow(node->quality * vOut);
         }
     }
     network->qualBalance.updateStored(findStoredMass());

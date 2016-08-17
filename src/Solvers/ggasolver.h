@@ -70,7 +70,6 @@ class GGASolver : public HydSolver
     double findErrorNorm(double lamda);
     bool   hasConverged();
     bool   linksChangedStatus();
-    bool   flowThresholdsReduced();
     void   reportTrial(int trials, double lamda);
 };
 

@@ -187,7 +187,7 @@ void Network::writeTitle(ostream& out)
     if ( title.size() > 0 )
     {
         out << endl;
-        for (string s : title) out << "  " << s << "\n";
+        for (string s : title) out << "  " << s << endl;
     }
 }
 

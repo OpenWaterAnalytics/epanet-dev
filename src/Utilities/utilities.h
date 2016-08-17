@@ -30,6 +30,14 @@ class Utilities
     	c.clear();
     }
 
+/// Replacement for c++11 to_string (which doesn't work with GNU GCC 4.7.2)
+    template < typename T > static std::string to_str( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
+
 /// Generates the name of a temporary file
     static bool getTmpFileName(std::string& fname);
 

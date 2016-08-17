@@ -51,7 +51,7 @@ class Node: public Element
     virtual bool   hasEmitter() { return false; }
 
     // Overridden for Tank nodes
-    virtual void   validate() { }
+    virtual void   validate(Network* nw) { }
     virtual bool   isReactive() { return false; }
     virtual bool   isFull() { return false; }
     virtual bool   isEmpty() { return false; }

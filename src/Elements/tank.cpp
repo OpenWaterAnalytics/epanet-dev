@@ -65,7 +65,7 @@ void Tank::convertUnits(Network* nw)
 
 //  Check that tank has valid data
 
-void Tank::validate()
+void Tank::validate(Network* nw)
 {
     // ... check for enough info to compute volume
     if ( diameter == 0.0 && volCurve == nullptr )
@@ -81,9 +81,10 @@ void Tank::validate()
         {
             throw NetworkError(NetworkError::INVALID_VOLUME_CURVE, name);
         }
-        double tankHead = volCurve->x(0) + elev;
+        double ucfLength = nw->ucf(Units::LENGTH);
+        double tankHead = volCurve->x(0) / ucfLength + elev;
         minHead = max(minHead, tankHead);
-        tankHead = volCurve->x(volCurve->size() - 1) + elev;
+        tankHead = volCurve->x(volCurve->size() - 1) / ucfLength + elev;
         maxHead = min(maxHead, tankHead);
      }
 
@@ -131,7 +132,7 @@ double Tank::findVolume(double aHead)
     {
         // ... find slope and intercept of curve segment containing depth
 
-        aHead *= ucfLength;
+        depth *= ucfLength;
         double slope, intercept;
         volCurve->findSegment(depth, slope, intercept);
 
@@ -203,10 +204,27 @@ double Tank::findHead(double volume)
 
 void Tank::updateVolume(int tstep)
 {
+    // ... new volume based on current outflow
+
     volume += outflow * tstep;
-    volume = max(volume, minVolume);
-    volume = min(volume, maxVolume);
-    head = findHead(volume);
+
+    // ... check if min/max levels reached within an additional 1 second of flow
+
+    double v1 = volume + outflow;
+    if ( v1 <= minVolume )
+    {
+        volume = minVolume;
+        head = minHead;
+    }
+    else if ( v1 >= maxVolume )
+    {
+        volume = maxVolume;
+        head = maxHead;
+    }
+
+    // ... find head at new volume
+
+    else head = findHead(volume);
  }
 
 //-----------------------------------------------------------------------------

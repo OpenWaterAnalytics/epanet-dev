@@ -7,6 +7,7 @@
 
 #include "pump.h"
 #include "pattern.h"
+#include "Core/constants.h"
 #include "Core/network.h"
 #include "Core/error.h"
 #include "Models/headlossmodel.h"
@@ -108,7 +109,8 @@ bool Pump::changeStatus(int s, bool makeChange, const string reason, ostream& ms
         if ( makeChange )
         {
             if ( s == LINK_OPEN && speed == 0.0 ) speed = 1.0;
-            msgLog << "\n  " << reason;
+            if ( s == LINK_CLOSED ) flow = ZERO_FLOW;
+            msgLog << "\n    " << reason;
             status = s;
         }
         return true;
@@ -130,10 +132,14 @@ bool Pump::changeSetting(double s, bool makeChange, const string reason, ostream
 
         if ( makeChange )
         {
-            if ( s == 0.0 ) status = Link::LINK_CLOSED;
-            else            status = Link::LINK_OPEN;
+            if ( s == 0.0 )
+            {
+                status = Link::LINK_CLOSED;
+                flow = ZERO_FLOW;
+            }
+            else status = Link::LINK_OPEN;
             speed = s;
-            msgLog << "\n  " << reason;
+            msgLog << "\n    " << reason;
         }
         return true;
     }

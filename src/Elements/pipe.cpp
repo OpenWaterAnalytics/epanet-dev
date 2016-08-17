@@ -155,7 +155,7 @@ bool Pipe::changeStatus(int s, bool makeChange, const string reason, stringstrea
     {
         if ( makeChange )
         {
-            msgLog << "\n  " << reason;
+            msgLog << "\n    " << reason;
             status = s;
         }
         return true;

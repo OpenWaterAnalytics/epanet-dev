@@ -71,7 +71,7 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
         int tstep = 0;
         do
         {
-            std::cout << "\r    Solving network at "
+            std::cout << "\r    Solving network at "                     //r
                 << Utilities::getTime(t+tstep) << " hrs ...        ";
 
             // ... run solver to compute hydraulics
@@ -91,7 +91,7 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
         clock_t end_t = clock();
         double cpu_t = ((double) (end_t - start_t)) / CLOCKS_PER_SEC;
         std::stringstream ss;
-        ss << "\n\n  Simulation completed in ";
+        ss << "\n  Simulation completed in ";
         p.writeMsg(ss.str());
         ss.str("");
         if ( cpu_t < 0.001 ) ss << "< 0.001 sec.";
@@ -99,9 +99,9 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
         p.writeMsg(ss.str());
 
         // ... report simulation results
-        std::cout << "\r    Writing report ...                           ";
+        std::cout << "\n    Writing report ...                           ";
         err = p.writeReport();
-        std::cout << "\r    Simulation completed.                         \n";
+        std::cout << "\n    Simulation completed.                         \n";
         std::cout << "\n... EPANET completed in " << ss.str() << "\n";
     }
 
