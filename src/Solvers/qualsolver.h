@@ -34,7 +34,7 @@ class QualSolver
     // Public Methods
     virtual void   init() { }
     virtual void   reverseFlow(int linkIndex) { }
-    virtual int    solve(int* sortedLinks, int tstep) = 0;
+    virtual int    solve(int* sortedLinks, int timeStep) = 0;
 
   protected:
     Network*     network;

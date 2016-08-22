@@ -118,6 +118,7 @@ void ReportWriter::writeSummary(string inpFileName)
     sout << "\n  Quality Time Step ............. " << network->option(Options::QUAL_STEP) << " seconds";
     sout << "\n  Report Time Step .............. " << network->option(Options::REPORT_STEP) / 60 << " minutes";
     sout << "\n  Total Duration ................ " << network->option(Options::TOTAL_DURATION) / 3600 << " hours";
+    sout << "\n";
 }
 
 //-----------------------------------------------------------------------------

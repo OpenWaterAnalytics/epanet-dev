@@ -53,8 +53,6 @@ class Link: public Element
     virtual void   setInitStatus(int s) {}
     virtual void   setInitSetting(double s) {}
     virtual void   setResistance(Network* nw) {}
-    virtual void   setFlowThreshold(const double viscos);
-    virtual bool   reduceFlowThreshold();
 
     // Retrieves hydraulic variables
     virtual double getVelocity() {return 0.0;}
@@ -105,8 +103,6 @@ class Link: public Element
 
     // Computed Variables
     int            status;           //!< current status
-    double         flowThresh0;      //!< initial flow threshold (cfs)
-    double         flowThresh;       //!< current flow threshold (cfs)
     double         flow;             //!< flow rate (cfs)
     double         leakage;          //!< leakage rate (cfs)
     double         hLoss;            //!< head loss (ft)

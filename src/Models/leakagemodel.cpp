@@ -48,7 +48,7 @@ PowerLeakageModel::PowerLeakageModel(const double ucfLength_, const double ucfFl
 
 double PowerLeakageModel::findFlow(double a, double b, double length, double h, double& dqdh)
 {
-    // gpm / 1000 ft = a *  * (ft)^b or lpm / 1000 m = a * (m)^b
+    // no leakage for non-positive pressure head
     if ( h <= 0.0 )
     {
         dqdh = 0.0;
@@ -78,6 +78,7 @@ FavadLeakageModel::FavadLeakageModel(const double ucfLength_)
 
 double FavadLeakageModel::findFlow(double a, double m, double length, double h, double& dqdh)
 {
+    // no leakage for non-positive pressure head
     if ( h <= 0.0 )
     {
         dqdh = 0.0;

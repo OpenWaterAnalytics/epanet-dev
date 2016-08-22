@@ -16,6 +16,7 @@
 #include "ggasolver.h"
 #include "matrixsolver.h"
 #include "Core/network.h"
+#include "Core/constants.h"
 #include "Elements/junction.h"
 #include "Elements/tank.h"
 #include "Elements/link.h"
@@ -41,13 +42,15 @@ static const string s_FlowChange     = "    Flow Change = ";
 static const string s_TotFlowChange  = "    Total Flow Change Ratio = ";
 static const string s_NodeLabel      = "  Node ";
 static const string s_FGChange       = "    Fixed Grade Status changed to ";
-static const string s_FlowThresh     = "    Flow Threshold Reductions: ";
 
 //-----------------------------------------------------------------------------
 
 // error norm threshold for status checking
 static const double ErrorThreshold = 1.0;
 static const double Huge = numeric_limits<double>::max();
+
+// step sizing enumeration
+enum StepSizing {FULL, RELAXATION, LINESEARCH};
 
 //-----------------------------------------------------------------------------
 
@@ -65,12 +68,19 @@ GGASolver::GGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
     hLossEvalCount  = 0;
     trialsLimit     = 0;
     reportTrials    = network->option(Options::REPORT_TRIALS);
+
     headErrLimit    = 0.0;
     flowErrLimit    = 0.0;
     flowChangeLimit = 0.0;
     flowRatioLimit  = 0.0;
     tstep           = 0.0;
     theta           = 0.0;
+
+    if (network->option(Options::STEP_SIZING) == "RELAXATION" )
+        stepSizing = RELAXATION;
+    else if (network->option(Options::STEP_SIZING) == "LINESEARCH" )
+        stepSizing = LINESEARCH;
+    else stepSizing = FULL;
 
     errorNorm     = 0.0;
     oldErrorNorm  = 0.0;
@@ -113,14 +123,6 @@ int GGASolver::solve(double tstep_, int& trials)
     // ... set values for convergence limits
 
     setConvergenceLimits();
-
-    // ... re-set flow thresholds for linear head loss
-
-    double viscos = network->option(Options::KIN_VISCOSITY);
-    for (Link* link : network->links)
-    {
-        link->setFlowThreshold(viscos);
-    }
 
     // ... perform Newton iterations
 
@@ -167,14 +169,14 @@ int GGASolver::solve(double tstep_, int& trials)
 
         // ... if close to convergence then check for any link status changes
 
-        if ( converged || errorNorm < ErrorThreshold )
+        if ( converged ) //|| errorNorm < ErrorThreshold )
         {
             statusChanged = linksChangedStatus();
         }
 
         // ... check if the current solution can be accepted
 
-        if ( converged && !statusChanged && !flowThresholdsReduced() ) break;
+        if ( converged && !statusChanged ) break;
         trials++;
     }
     //if ( reportTrials ) network->msgLog << s_HlossEvals << hLossEvalCount;
@@ -250,9 +252,9 @@ void GGASolver::setFixedGradeNodes()
 
     if ( theta > 0.0 && tstep > 0.0 )
     {
-        for (Node* node : network->nodes)
+        for (Node* tankNode : network->nodes)
         {
-            if ( node->type() == Node::TANK ) node->fixedGrade = false;
+            if ( tankNode->type() == Node::TANK ) tankNode->fixedGrade = false;
         }
     }
 
@@ -345,10 +347,22 @@ double GGASolver::findStepSize(int trials)
     double lamda = 1.0;
     errorNorm = findErrorNorm(lamda);
 
+    if ( stepSizing == RELAXATION && oldErrorNorm < ErrorThreshold )
+    {
+        lamda = 0.5;
+        double errorNorm2 = findErrorNorm(lamda);
+        if ( errorNorm2 < errorNorm ) errorNorm = errorNorm2;
+        else
+        {
+            lamda = 1.0;
+            errorNorm = findErrorNorm(lamda);
+        }
+    }
+
     // ... if called for, implement a line search procedure
     //     to find the best step size lamda to take
 
-    if ( network->option(Options::STEP_SIZING) == "LINESEARCH" && trials > 1 )
+    if ( stepSizing == LINESEARCH && trials > 1 )
     {
     ////////////  TO BE IMPLEMENTED  ///////////////
     }
@@ -392,7 +406,7 @@ bool GGASolver::hasConverged()
 
 void GGASolver::reportTrial(int trials, double lamda)
 {
-    network->msgLog << endl << s_Trial << trials << ":";
+    network->msgLog << endl << endl << s_Trial << trials << ":";
     network->msgLog << endl << s_StepSize << lamda;
     network->msgLog << endl << s_TotalError << errorNorm;
 
@@ -427,25 +441,7 @@ void GGASolver::reportTrial(int trials, double lamda)
 
     // ... report total link flow change relative to total link flow
 
-    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange << endl;
-}
-
-//-----------------------------------------------------------------------------
-
-//  Check if any links need to have their flow thresholds reduced.
-
-bool GGASolver::flowThresholdsReduced()
-{
-    int  count = 0;
-    for (Link* link : network->links)
-    {
-        if ( link->reduceFlowThreshold() ) count++;
-    }
-    if ( reportTrials && count > 0 )
-    {
-        network->msgLog << endl << s_FlowThresh << count << endl;
-    }
-    return (count > 0);
+    network->msgLog << endl << s_TotFlowChange << hydBalance.totalFlowChange;
 }
 
 //-----------------------------------------------------------------------------
@@ -645,6 +641,7 @@ bool GGASolver::linksChangedStatus()
             if ( link->fromNode->isClosed(q) || link->toNode->isClosed(-q) )
             {
                 link->status = Link::TEMP_CLOSED;
+                link->flow = ZERO_FLOW;
             }
         }
 

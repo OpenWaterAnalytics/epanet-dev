@@ -80,9 +80,9 @@ void Pipe::setResistance(Network* nw)
 
 //-----------------------------------------------------------------------------
 
-void Pipe::setInitStatus(int status)
+void Pipe::setInitStatus(int s)
 {
-    initStatus = status;
+    initStatus = s;
 }
 
 //-----------------------------------------------------------------------------
@@ -149,13 +149,13 @@ double Pipe::findLeakage(Network* nw, double h, double& dqdh)
 
 //-----------------------------------------------------------------------------
 
-bool Pipe::changeStatus(int s, bool makeChange, const string reason, stringstream& msgLog)
+bool Pipe::changeStatus(int s, bool makeChange, const string reason, ostream& msgLog)
 {
     if ( status != s )
     {
         if ( makeChange )
         {
-            msgLog << "\n  " << reason;
+            msgLog << "\n    " << reason;
             status = s;
         }
         return true;

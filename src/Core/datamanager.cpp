@@ -226,7 +226,7 @@ int DataManager::getLinkNodes(int index, int* fromNode, int* toNode, Network* nw
 int DataManager::getLinkValue(int index, int param, double* value, Network* nw)
 {
     *value = 0.0;
-    if ( index < 0 || index >= nw->count(Element::NODE) ) return 205;
+    if ( index < 0 || index >= nw->count(Element::LINK) ) return 205;
     Link* link = nw->link(index);
     switch (param)
     {

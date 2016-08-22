@@ -73,7 +73,7 @@ static const char* epanetQualKeywords[] =
 
 static const char* w_QUALITY = "QUALITY";
 static const char* w_CHEMICAL = "CHEMICAL";
-static const char* w_TRACE = "TRACE";
+//static const char* w_TRACE = "TRACE";
 static const char* w_DURATION = "DURATION";
 static const char* w_STATISTIC = "STATISTIC";
 static const char* w_GLOBAL = "GLOBAL";
@@ -87,7 +87,7 @@ static const char* w_WALL = "WALL";
 static const char* w_TANK = "TANK";
 static const char* w_LIMITING = "LIMITING";
 static const char* w_ROUGHNESS = "ROUGHNESS";
-static const char* w_NONE = "NONE";
+//static const char* w_NONE = "NONE";
 
 //-----------------------------------------------------------------------------
 

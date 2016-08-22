@@ -9,6 +9,7 @@
 #include "pipe.h"
 #include "pump.h"
 #include "valve.h"
+#include "Core/constants.h"
 #include "Core/network.h"
 #include "Utilities/mempool.h"
 
@@ -21,10 +22,6 @@ using namespace std;
 static const string s_From = " status changed from ";
 static const string s_To =   " to ";
 static const string linkStatusWords[] = {"CLOSED", "OPEN", "ACTIVE", "TEMP_CLOSED"};
-
-static const double ZERO_FLOW = 1.0e-6;       //!< flow in closed link (cfs)
-static const double RE_THRESH = 200;          //!< threshold Reynolds Number
-static const double MIN_THRESH = 1.0e-6;      //!< minimum flow threshold (cfs)
 
 //-----------------------------------------------------------------------------
 
@@ -40,8 +37,6 @@ Link::Link(string name_) :
     lossCoeff(0.0),
     initSetting(1.0),
     status(0),
-    flowThresh0(0.0),
-    flowThresh(0.0),
     flow(0.0),
     leakage(0.0),
     hLoss(0.0),
@@ -89,36 +84,6 @@ void Link::initialize(bool reInitFlow)
         else setInitFlow();
     }
     leakage = 0.0;
-}
-
-//-----------------------------------------------------------------------------
-
-void Link::setFlowThreshold(const double viscos)
-{
-    // ... set a flow threshold based on a threshold Reynolds number
-    //     (flows below this obey a linear head loss function)
-
-    // get Re at flow of 1 cfs
-    double Re1 = getRe(1.0, viscos);
-
-    double qThresh = 0.0;         // flow at threshold Re
-    if ( Re1 > 0.0 ) qThresh = RE_THRESH / Re1;
-    flowThresh = max(qThresh, MIN_THRESH);
-    flowThresh0 = flowThresh;
-}
-
-//-----------------------------------------------------------------------------
-
-bool Link::reduceFlowThreshold()
-{
-    if ( status != LINK_OPEN || flowThresh <= MIN_THRESH ) return false;
-    if ( abs(flow) < flowThresh )
-    {
-        flowThresh = abs(flow) / 2.0;
-        flowThresh = max(flowThresh, MIN_THRESH);
-        return true;
-    }
-    return false;
 }
 
 //-----------------------------------------------------------------------------

@@ -107,7 +107,6 @@ int Network::count(Element::ElementType eType)
 
 int Network::indexOf(Element::ElementType eType, const string& name)
 {
-    Element* e = nullptr;
     map<string,Element*> *table;
     switch(eType)
     {

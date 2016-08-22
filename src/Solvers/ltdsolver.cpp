@@ -106,10 +106,10 @@ void LTDSolver::reverseFlow(int k)
 
 //  Solve for water quality throughout the network at the end of a time step
 
-int LTDSolver::solve(int* sortedLinks, int tstep)
+int LTDSolver::solve(int* sortedLinks, int timeStep)
 {
     int errCode = 0;
-    this->tstep = tstep;
+    tstep = timeStep;
 
     // ... initialize node accumulators
     memset(&volIn[0], 0, nodeCount*sizeof(double));
@@ -132,7 +132,7 @@ int LTDSolver::solve(int* sortedLinks, int tstep)
     updateLinkQuality();
 
     // ... update the mass balance with mass outflows and final storage
-    updateMassBalance(tstep);
+    updateMassBalance();
     return errCode;
 }
 
@@ -208,6 +208,7 @@ void LTDSolver::release(int k)
     }
 
     // ... reconcile mass balance for mass outflow from an empty tank
+/*
     if ( node->type() == Node::TANK )
     {
         Tank* tank = static_cast<Tank *> (node);
@@ -217,7 +218,7 @@ void LTDSolver::release(int k)
             network->qualBalance.updateInflow(c * vNeeded);
         }
     }
-
+*/
     // ... case where link has a last (most upstream) segment
     Segment* seg = lastSegment[k];
     if ( seg )
@@ -377,7 +378,7 @@ double LTDSolver::findStoredMass()
         if ( node->type() == Node::TANK )
         {
   	        Tank * tank = static_cast<Tank *>(node);
-            totalMass += tank->mixingModel.storedMass();
+            totalMass += max(0.0, tank->mixingModel.storedMass());
         }
     }
     return totalMass;
@@ -387,13 +388,16 @@ double LTDSolver::findStoredMass()
 
 // Update the system's mass balance by accounting for mass outflows and storage
 
-void LTDSolver::updateMassBalance(double dt)
+void LTDSolver::updateMassBalance()
 {
     for (Node* node : network->nodes)
     {
         if ( node->type() == Node::JUNCTION &&  node->outflow > 0.0 )
         {
-            network->qualBalance.updateOutflow(node->quality * node->outflow * dt);
+            double vOut = node->outflow * tstep;
+            double vIn = volIn[node->index];
+            if ( vIn < vOut ) vOut = max(0.0, vIn);
+            network->qualBalance.updateOutflow(node->quality * vOut);
         }
     }
     network->qualBalance.updateStored(findStoredMass());

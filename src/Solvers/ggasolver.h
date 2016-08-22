@@ -34,6 +34,7 @@ class GGASolver : public HydSolver
     int        nodeCount;         // number of network nodes
     int        linkCount;         // number of network links
     int        hLossEvalCount;    // number of head loss evaluations
+    int        stepSizing;        // Newton step sizing method
 
     int        trialsLimit;       // limit on number of trials
     bool       reportTrials;      // report summary of each trial
@@ -70,7 +71,6 @@ class GGASolver : public HydSolver
     double findErrorNorm(double lamda);
     bool   hasConverged();
     bool   linksChangedStatus();
-    bool   flowThresholdsReduced();
     void   reportTrial(int trials, double lamda);
 };
 
