@@ -45,4 +45,9 @@ const double SECperDAY =  86400.0;
 const double PSIperFT  =  0.4333;
 const double FT3perL   =  0.0353145;
 
+const double MIN_GRADIENT    = 1.0e-6; //!< minimum head loss gradient
+const double HIGH_RESISTANCE = 1.0e8;  //!< infinite flow resistance
+const double HEAD_EPSILON    = 1.0e-6; //!< negligible head value (ft)
+const double ZERO_FLOW       = 1.0e-6; //!< flow in closed link (cfs)
+
 #endif

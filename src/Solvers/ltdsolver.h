@@ -29,7 +29,7 @@ class LTDSolver : public QualSolver
 
     void init();
     void reverseFlow(int k);
-    int  solve(int* sortedLinks, int tstep);
+    int  solve(int* sortedLinks, int timeStep);
 
   private:
 	int                    nodeCount;        // number of nodes
@@ -49,7 +49,7 @@ class LTDSolver : public QualSolver
 	void   updateNodeQuality();
 	void   updateLinkQuality();
 	double findStoredMass();
-	void   updateMassBalance(double dt);
+	void   updateMassBalance();
     void   addSegment(int k, double v, double c);
 
 };

@@ -72,10 +72,10 @@ FixedPattern::~FixedPattern() {}
 
 //  Initializes the state of a Fixed Pattern.
 
-void FixedPattern::init(int tInterval, int tStart)
+void FixedPattern::init(int intrvl, int tStart)
 {
     startTime = tStart;
-    if ( interval == 0 ) interval = tInterval;
+    if ( interval == 0 ) interval = intrvl;
     if ( factors.size() == 0 ) factors.push_back(1.0);
     int nPeriods = factors.size();
     if ( interval > 0 )
@@ -123,7 +123,7 @@ VariablePattern::~VariablePattern()
 //  Initializes the state of a VariablePattern.
 //  (Variable patterns have no initial offset time.)
 
-void VariablePattern::init(int interval, int tstart)
+void VariablePattern::init(int intrvl, int tstart)
 {
     if ( factors.size() == 0 )
     {

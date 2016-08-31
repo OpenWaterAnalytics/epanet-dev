@@ -76,7 +76,7 @@ bool hasValidNodes(Network* nw)
     {
         try
         {
-            node->validate();
+            node->validate(nw);
         }
         catch (ENerror const& e)
         {

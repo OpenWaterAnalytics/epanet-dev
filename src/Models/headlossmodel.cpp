@@ -20,10 +20,6 @@ using namespace std;
 
 const double HW_EXP = 1.852;           // exponent for Hazen-Williams formula
 
-//// Results can be sensitive to values used for these constants ////
-const double HIGH_RESISTANCE = 1.0e9;  // infinite flow resistance
-const double HEAD_EPSILON = 1.0e-6;    // negligible head value (ft)
-
 ////////////////////////////////////////////////////////////
 //// Replace with more recently derived approximation.  ////
 ////////////////////////////////////////////////////////////
@@ -73,16 +69,8 @@ void HeadLossModel::findClosedHeadLoss(double flow,
                                        double& headLoss,
                                        double& gradient)
 {
-    //gradient = HIGH_RESISTANCE;
-    //headLoss = HIGH_RESISTANCE * flow;
-
-    double q = flow;
-    if ( flow > 0.0 ) q = -q;
-    headLoss = 0.0;
-    gradient = 0.0;
-    addCVHeadLoss(q, headLoss, gradient);
-    if ( flow > 0.0 ) headLoss = -headLoss;
-
+    gradient = HIGH_RESISTANCE;
+    headLoss = HIGH_RESISTANCE * flow;
 }
 
 // Head loss addition for link with a check valve
@@ -116,32 +104,19 @@ void HW_HeadLossModel::findHeadLoss(Pipe* pipe, double flow, double& headLoss,
     double q = abs(flow);
     double r = pipe->resistance;
     double k = pipe->lossFactor;
-    double qt = pipe->flowThresh;
 
-    // ... use linear approximation for low flow
-    //     (gradient = head loss at flow threshold / flow threshold)
-
-    if ( q < qt )
+    gradient = HW_EXP * r * pow(q, HW_EXP-1.0);
+    if ( gradient < MIN_GRADIENT )
     {
-        gradient = r * HW_EXP * pow(qt, HW_EXP-1.0) + 2.0 * k * qt;
-        headLoss = gradient * q;
+        gradient = MIN_GRADIENT;
+        headLoss = q * gradient;
     }
-
-    // ... otherwise apply Hazen-Williams formula
-
-    else
+    else headLoss = q * gradient / HW_EXP;
+    if (k > 0.0)
     {
-        headLoss = r * pow(q, HW_EXP);
-        gradient = HW_EXP * headLoss / q;
-
-        // ... add any minor losses
-
-        if (k > 0.0)
-        {
-            headLoss += k * q * q;
-            gradient += 2.0 * k * q;
+        headLoss += k * q * q;
+        gradient += 2.0 * k * q;
    	}
-    }
 
     // ... give proper sign to head loss
 
@@ -168,20 +143,21 @@ void CM_HeadLossModel::findHeadLoss(
         Pipe* pipe, double flow, double& headLoss, double& gradient)
 {
     double q = abs(flow);
-    double r = pipe->resistance + pipe->lossFactor;
+    double r = pipe->resistance;
+    double k = pipe->lossFactor;
 
-    // ... check if low flow condition applies
-
-    if ( q < pipe->flowThresh )
+    gradient = 2.0 * r * q;
+    if ( gradient < MIN_GRADIENT )
     {
-        gradient = r * pipe->flowThresh;
-        headLoss = gradient * flow;
+        gradient = MIN_GRADIENT;
+        headLoss = q * gradient;
     }
-    else
+    else headLoss = q * gradient / 2.0;
+    if (k > 0.0)
     {
-        headLoss = r * q * flow;
-        gradient = 2.0 * r * q;
-    }
+        headLoss += k * q * q;
+        gradient += 2.0 * k * q;
+   	}
 }
 
 

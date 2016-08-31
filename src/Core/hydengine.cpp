@@ -42,10 +42,10 @@ static const string s_Balanced   = "  Network balanced in ";
 static const string s_Trials     = " trials.";
 static const string s_Deficient  = " nodes were pressure deficient.";
 static const string s_ReSolve1   =
-    "\n    Re-solving network with these made fixed grade.\n";
+    "\n    Re-solving network with these made fixed grade.";
 static const string s_Reductions1 =  " nodes require demand reductions.";
 static const string s_ReSolve2    =
-    "\n    Re-solving network with these reductions made.\n\n";
+    "\n    Re-solving network with these reductions made.";
 static const string s_Reductions2 =
     " nodes require further demand reductions to 0.";
 
@@ -151,6 +151,7 @@ void HydEngine::init(bool initFlows)
     rptTime = network->option(Options::REPORT_START);
     peakKwatts = 0.0;
     engineState = HydEngine::INITIALIZED;
+    timeStepReason = "";
 }
 
 //-----------------------------------------------------------------------------
@@ -162,14 +163,15 @@ int  HydEngine::solve(int* t)
     if ( engineState != HydEngine::INITIALIZED ) return 0;
     if ( network->option(Options::REPORT_STATUS) )
     {
-        network->msgLog << endl << "  Hour " << Utilities::getTime(currentTime);
+        network->msgLog << endl << "  Hour " <<
+            Utilities::getTime(currentTime) << timeStepReason;
     }
 
     *t = currentTime;
     timeOfDay = (currentTime + startTime) % 86400;
     updateCurrentConditions();
 
-    if ( network->option(Options::REPORT_TRIALS) )  network->msgLog << endl;
+    //if ( network->option(Options::REPORT_TRIALS) )  network->msgLog << endl;
     int trials = 0;
     int statusCode = hydSolver->solve(hydStep, trials);
 
@@ -330,7 +332,7 @@ bool HydEngine::isPressureDeficient()
     }
     if ( count > 0 && network->option(Options::REPORT_TRIALS) )
     {
-        network->msgLog << "\n    " << count << s_Deficient;
+        network->msgLog << "\n\n    " << count << s_Deficient;
     }
     return (count > 0);
 }
@@ -349,7 +351,7 @@ int HydEngine::resolvePressureDeficiency(int& trials)
     // ... re-solve network hydraulics with the pressure deficient junctions
     //     set to fixed grade (which occurred in isPressureDeficient())
 
-    if ( reportTrials ) network->msgLog << s_ReSolve1 << "\n";
+    if ( reportTrials ) network->msgLog << s_ReSolve1;
     int statusCode = hydSolver->solve(hydStep, trials2);
     if ( statusCode == HydSolver::FAILED_ILL_CONDITIONED ) return statusCode;
 
@@ -370,8 +372,8 @@ int HydEngine::resolvePressureDeficiency(int& trials)
 
     if (reportTrials )
     {
-        network->msgLog << "\n    " << count1 << s_Reductions1;
-        network->msgLog << s_ReSolve2 << "\n";
+        network->msgLog << "\n\n    " << count1 << s_Reductions1;
+        network->msgLog << s_ReSolve2;
     }
     statusCode = hydSolver->solve(hydStep, trials3);
 
@@ -417,6 +419,7 @@ void HydEngine::reportDiagnostics(int statusCode, int trials)
          network->option(Options::IF_UNBALANCED) == Options::STOP ))
         halted = true;
 
+    if ( network->option(Options::REPORT_TRIALS) ) network->msgLog << endl;
     if ( network->option(Options::REPORT_STATUS) )
     {
         network->msgLog << endl;
@@ -433,6 +436,7 @@ void HydEngine::reportDiagnostics(int statusCode, int trials)
             network->msgLog << s_IllConditioned;
             break;
         }
+        network->msgLog << endl;
     }
 }
 
@@ -444,29 +448,32 @@ int HydEngine::getTimeStep()
 {
     // ... normal time step is user-supplied hydraulic time step
 
+    string reason ;
     int tstep = network->option(Options::HYD_STEP);
     int n = currentTime / tstep + 1;
     tstep = n * tstep - currentTime;
-
-    // ... adjust for time until next time pattern change
-
-    int t = timeToPatternChange();
-    if ( t > 0 && t < tstep ) tstep = t;
+    timeStepReason = "";
 
     // ... adjust for time until next reporting period
 
-    t = rptTime - currentTime;
-    if ( t > 0 && t < tstep ) tstep = t;
+    int t = rptTime - currentTime;
+    if ( t > 0 && t < tstep )
+    {
+        tstep = t;
+        timeStepReason = "";
+    }
+
+    // ... adjust for time until next time pattern change
+
+    tstep = timeToPatternChange(tstep);
 
     // ... adjust for shortest time to fill or drain a tank
 
-    t = timeToCloseTank();
-    if ( t > 0 && t < tstep ) tstep = t;
+    tstep = timeToCloseTank(tstep);
 
     // ... adjust for shortest time to activate a simple control
 
-    t = timeToActivateControl();
-    if ( t > 0 && t < tstep ) tstep = t;
+    tstep = timeToActivateControl(tstep);
     return tstep;
 }
 
@@ -474,28 +481,32 @@ int HydEngine::getTimeStep()
 
 //  Finds shortest time until next change for all time patterns.
 
-int HydEngine::timeToPatternChange()
+int HydEngine::timeToPatternChange(int tstep)
 {
-    int t, tmin = -1;
+    Pattern* changedPattern = nullptr;
     for (Pattern* pattern : network->patterns)
     {
-        t = pattern->nextTime(currentTime) - currentTime;
-        if ( t > 0 )
+        int t = pattern->nextTime(currentTime) - currentTime;
+        if ( t > 0 && t < tstep )
         {
-            if ( tmin < 0 || t < tmin ) tmin = t;
+            tstep = t;
+            changedPattern = pattern;
         }
     }
-    return tmin;
+    if ( changedPattern )
+    {
+        timeStepReason = "  (change in Pattern " + changedPattern->name + ")";
+    }
+    return tstep;
 }
 
 //-----------------------------------------------------------------------------
 
 //  Finds the shortest time to completely fill or empty all tanks.
 
-int HydEngine::timeToCloseTank()
+int HydEngine::timeToCloseTank(int tstep)
 {
-    int tmin = -1;
-
+    Tank* closedTank = nullptr;
     for (Node* node : network->nodes)
     {
         // ... check if node is a tank
@@ -508,31 +519,40 @@ int HydEngine::timeToCloseTank()
             int t = tank->timeToVolume(tank->minVolume);
             if ( t <= 0 ) t = tank->timeToVolume(tank->maxVolume);
 
-            // ... compare this time with tmin
+            // ... compare this time with current time step
 
-            if ( t > 0 )
+            if ( t > 0 && t < tstep )
             {
-                if ( tmin == -1 ) tmin = t;
-                else if ( t < tmin ) tmin = t;
+                tstep = t;
+                closedTank = tank;
             }
         }
     }
-    return tmin;
+    if ( closedTank )
+    {
+        timeStepReason = "  (Tank " + closedTank->name + " closed)";
+    }
+    return tstep;
 }
 
 //-----------------------------------------------------------------------------
 
 //  Finds the shortest time to activate a simple control.
 
-int HydEngine::timeToActivateControl()
+int HydEngine::timeToActivateControl(int tstep)
 {
-    int minTime = -1;
+    bool activated = false;
     for (Control* control : network->controls)
     {
-        int aTime = control->timeToActivate(network, currentTime, timeOfDay);
-        if ( minTime < 0 || aTime < minTime ) minTime = aTime;
+        int t = control->timeToActivate(network, currentTime, timeOfDay);
+        if ( t > 0 && t < tstep )
+        {
+            tstep = t;
+            activated = true;
+        }
     }
-    return minTime;
+    if ( activated ) timeStepReason = "  (control activated)";
+    return tstep;
 }
 
 //-----------------------------------------------------------------------------

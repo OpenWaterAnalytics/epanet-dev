@@ -37,7 +37,7 @@ static const char* pressureUnitsWords[] = {"PSI", "METERS", "PKA", 0};
 static const char* headlossModelWords[] = {"H-W", "D-W", "C-M", 0};
 
 // Hydraulic Newton solver step size method names
-static const char* stepSizingWords[] = {"FULL", "LINESEARCH", 0};
+static const char* stepSizingWords[] = {"FULL", "RELAXATION", "LINESEARCH", 0};
 
 static const char* ifUnbalancedWords[] = {"STOP", "CONTINUE", 0};
 

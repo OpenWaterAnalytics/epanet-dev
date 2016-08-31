@@ -13,8 +13,6 @@
 
 #include "Elements/link.h"
 
-#include <string>
-
 class Network;
 
 //! \class Pipe
@@ -36,8 +34,8 @@ class Pipe: public Link
     void        convertUnits(Network* nw);
     bool        isReactive();
     void        setInitFlow();
-    void        setInitStatus(int status);
-    void        setInitSetting(double setting);
+    void        setInitStatus(int s);
+    void        setInitSetting(double s);
     void        setResistance(Network* nw);
 
     double      getRe(const double q, const double viscos);
@@ -52,7 +50,7 @@ class Pipe: public Link
     double      findLeakage(Network* nw, double h, double& dqdh);
     bool        changeStatus(int s, bool makeChange,
                             const std::string reason,
-                            std::stringstream& msgLog);
+                            std::ostream& msgLog);
     void        validateStatus(Network* nw, double qTol);
 
     // Properties

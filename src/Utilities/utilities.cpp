@@ -178,7 +178,7 @@ int Utilities::getSeconds(const string& strTime, const string& strUnits)
 {
     // see if time is in military hr:min:sec format
 
-    if (strTime.find(":") > 0)
+    if ( strTime.find(':', 0) != string::npos )
     {
         int h = 0, m = 0, s = 0;
         if (sscanf(strTime.c_str(), "%d:%d:%d", &h, &m, &s) == 0) return -1;
@@ -192,13 +192,13 @@ int Utilities::getSeconds(const string& strTime, const string& strUnits)
 
     // if no units supplied then convert time in hours to seconds
 
-    if (strUnits.size() == 0) return (int) (3600 * t);
+    if (strUnits.size() == 0) return (int) (3600. * t);
 
     // determine time units and convert time accordingly
 
-    if (match(strUnits, s_Day) == 0)    return (int) (3600 * 24 * t);
-    if (match(strUnits, s_Hour) == 0)   return (int) (3600 * t);
-    if (match(strUnits, s_Minute) == 0) return (int) (60 * t);
+    if (match(strUnits, s_Day) == 0)    return (int) (3600. * 24. * t);
+    if (match(strUnits, s_Hour) == 0)   return (int) (3600. * t);
+    if (match(strUnits, s_Minute) == 0) return (int) (60. * t);
     if (match(strUnits, s_Second) == 0) return (int) t;
 
     // if AM/PM supplied, time is in hours and adjust it accordingly

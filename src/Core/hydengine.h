@@ -11,6 +11,8 @@
 #ifndef HYDENGINE_H_
 #define HYDENGINE_H_
 
+#include <string>
+
 class Network;
 class HydSolver;
 class MatrixSolver;
@@ -66,15 +68,16 @@ class HydEngine
     int            currentTime;        //!< current simulation time (sec)
     int            timeOfDay;          //!< current time of day (sec)
     double         peakKwatts;         //!< peak energy usage (kwatts)
+    std::string    timeStepReason;     //!< reason for taking next time step
 
     // Simulation sub-tasks
 
     void           initMatrixSolver();
 
     int            getTimeStep();
-    int            timeToPatternChange();
-    int            timeToActivateControl();
-    int            timeToCloseTank();
+    int            timeToPatternChange(int tstep);
+    int            timeToActivateControl(int tstep);
+    int            timeToCloseTank(int tstep);
 
     void           updateCurrentConditions();
     void           updateTanks();

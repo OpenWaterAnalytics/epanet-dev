@@ -46,7 +46,7 @@ class Pattern: public Element
     int            size() { return factors.size(); }
     double         factor(int i) { return factors[i]; }
     double         currentFactor();
-    virtual void   init(int interval, int tstart) = 0;
+    virtual void   init(int intrvl, int tstart) = 0;
     virtual int    nextTime(int t) = 0;
     virtual void   advance(int t) = 0;
 
@@ -75,7 +75,7 @@ class FixedPattern : public Pattern
     ~FixedPattern();
 
     // Methods
-    void   init(int interval, int tstart);
+    void   init(int intrvl, int tstart);
     int    nextTime(int t);
     void   advance(int t);
 
@@ -101,7 +101,7 @@ class VariablePattern : public Pattern
     // Methods
     void   addTime(int t) { times.push_back(t); }
     int    time(int i) { return times[i]; }
-    void   init(int interval, int tstart);
+    void   init(int intrvl, int tstart);
     int    nextTime(int t);
     void   advance(int t);
 
