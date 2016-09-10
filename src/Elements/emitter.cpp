@@ -55,12 +55,12 @@ void Emitter::convertUnits(Network* network)
     // ... get units conversion factors
 
     double qUcf = network->ucf(Units::FLOW);
-    double hUcf = network->ucf(Units::LENGTH);
+    double pUcf = network->ucf(Units::PRESSURE);
 
     // ... convert flowCoeff from user flow units per psi (or meter)
     //     to cfs per foot of head
 
-    flowCoeff /= qUcf * pow(hUcf, expon);
+    flowCoeff *= pow(pUcf, expon) / qUcf;
 }
 
 //-----------------------------------------------------------------------------
