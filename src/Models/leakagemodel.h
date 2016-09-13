@@ -39,6 +39,7 @@ class LeakageModel
   protected:
     double lengthUcf;
     double flowUcf;
+    double pressureUcf;
 };
 
 //-----------------------------------------------------------------------------
@@ -64,7 +65,7 @@ class FavadLeakageModel : public LeakageModel
 {
   public:
     FavadLeakageModel(const double ucfLength_);
-    double findFlow(double area, double m, double length, double h, double& dqdh);
+    double findFlow(double area, double slope, double length, double h, double& dqdh);
 };
 
 #endif /* LEAKAGEMODEL_H_ */
