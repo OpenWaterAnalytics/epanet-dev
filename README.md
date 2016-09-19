@@ -38,8 +38,8 @@ to the project root directory, and follow the commands:
 ```
 mkdir build && cd build
 cmake .. 
-msbuild ALL_BUILD.vcxproj
-cd bin\Debug
+msbuild /p:Configuration=Release ALL_BUILD.vcxproj
+cd bin\Release
 run-epanet3 input.inp report.txt
 ```
 
@@ -62,7 +62,7 @@ run-epanet3 input.inp report.txt
 
 ## API Reference
 
-The EPANET 3 API has a similar flavor to version 2, but all of the functions have been re-named and require that an EPANET project first be created and included as an argument in all function calls. (This makes the API capable of analyzing several projects in parallel in a thread safe manner.) EPANET 3 is able to read EPANET 2 input files but uses a different layout for its binary results file. Thus it will not be compatible with the current EPANET 2 GUI. Details of the API, including the changes and additions made to various computational components of EPANET, can be found in the 'docs' section of this repository (to be added shortly).
+The EPANET 3 API has a similar flavor to version 2, but all of the functions have been re-named and require that an EPANET project first be created and included as an argument in all function calls. (This makes the API capable of analyzing several projects in parallel in a thread safe manner.) EPANET 3 is able to read EPANET 2 input files but uses a different layout for its binary results file. Thus it will not be compatible with the current EPANET 2 GUI. Details of the API, including the changes and additions made to various computational components of EPANET, can be found in the 'docs' section of this repository.
 
 You can access the full documentation at [wateranalytics.org/epanet-dev](http://wateranalytics.org/epanet-dev).
 
