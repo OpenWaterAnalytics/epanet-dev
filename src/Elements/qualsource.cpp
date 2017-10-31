@@ -37,8 +37,12 @@ bool QualSource::addSource(Node* node, int t, double b, Pattern* p)
 {
     if ( node->qualSource == nullptr )
     {
-        node->qualSource = new QualSource();
-        if ( node->qualSource == nullptr ) return false;
+		try {
+			node->qualSource = new QualSource();
+		}
+		catch (std::bad_alloc& ba) {
+			return false;
+		}
     }
     node->qualSource->type = t;
     node->qualSource->base = b;

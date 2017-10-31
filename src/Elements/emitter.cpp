@@ -37,8 +37,12 @@ bool Emitter::addEmitter(Junction* junc, double c, double e, Pattern* p)
 {
     if ( junc->emitter == nullptr )
     {
-        junc->emitter = new Emitter();
-        if ( junc->emitter == nullptr ) return false;
+		try {
+			junc->emitter = new Emitter();
+		}
+		catch(std::bad_alloc& ba) {
+			return false;
+		}
     }
     junc->emitter->flowCoeff = c;
     junc->emitter->expon = e;
