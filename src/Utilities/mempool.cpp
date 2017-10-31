@@ -30,19 +30,26 @@ struct MemBlock
 
 static struct MemBlock* createMemBlock()
 {
-    struct MemBlock* memBlock = new struct MemBlock;
-    if (memBlock)
-    {
-        memBlock->block = new char[ALLOC_BLOCK_SIZE];
-        if (memBlock->block == nullptr)
-        {
-            delete memBlock;
-            return nullptr;
-        }
-        memBlock->free = memBlock->block;
-        memBlock->next = nullptr;
-        memBlock->end = memBlock->block + ALLOC_BLOCK_SIZE;
-    }
+	struct MemBlock* memBlock;
+	
+	try {
+		memBlock = new struct MemBlock;
+
+		try {
+			memBlock->block = new char[ALLOC_BLOCK_SIZE];
+		}
+		catch (std::bad_alloc& ba) {
+			delete memBlock;
+			return nullptr;
+		}
+
+		memBlock->free = memBlock->block;
+		memBlock->next = nullptr;
+		memBlock->end = memBlock->block + ALLOC_BLOCK_SIZE;
+	}
+	catch (std::bad_alloc& ba) {
+	}
+
     return memBlock;
 }
 
