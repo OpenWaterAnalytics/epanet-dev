@@ -12,6 +12,7 @@
 #define MEMPOOL_H_
 
 #include <cstddef>
+#include <new> 
 
 struct MemBlock;
 
