@@ -69,15 +69,23 @@ int SparspakSolver::init(int nrows_, int nnz_, int* xrow, int* xcol)
     nnz = nnz_;
 
     // ... allocate space for pointers from Aij to lnz
-    xaij = new int[nnz];
-    if ( !xaij ) return 0;
+	try {
+		xaij = new int[nnz];
+	}
+	catch (std::bad_alloc& ba) {
+		return 0;
+	}
+    
     memset(xaij, 0, nnz*sizeof(int));
 
     // ... allocate space for row re-ordering
-    perm = new int[nrows];
-    invp = new int[nrows];
-    if ( !perm || !invp ) return 0;
-
+	try {
+		perm = new int[nrows];
+		invp = new int[nrows];
+	}
+	catch (std::bad_alloc& ba) {
+		return 0;
+	}
 
     // ... compress, re-order, and factorize coeff. matrix A
     int* xadj;
@@ -86,9 +94,13 @@ int SparspakSolver::init(int nrows_, int nnz_, int* xrow, int* xcol)
     for (;;)
     {
         // ... allocate space for adjacency lists
-        xadj = new int[nrows+1];
-        adjncy = new int[2*nnz];
-        if ( !xadj || !adjncy ) break;
+		try {
+			xadj = new int[nrows + 1];
+			adjncy = new int[2 * nnz];
+		}
+		catch (std::bad_alloc& ba) {
+			break;
+		}
 
         // ... store matrix A in compressed format
         if ( !compress(nrows, nnz, xrow, xcol, xadj, adjncy, xaij) ) break;
@@ -108,10 +120,14 @@ int SparspakSolver::init(int nrows_, int nnz_, int* xrow, int* xcol)
 *****************************************/
 
         // ... allocate space for compressed storage of factorized matrix
-        xlnz = new int[nrows+1];
-        xnzsub = new int[nrows+1];
-        nzsub = new int[nnzl];
-        if ( !xlnz || !xnzsub || !nzsub ) break;
+		try {
+			xlnz = new int[nrows + 1];
+			xnzsub = new int[nrows + 1];
+			nzsub = new int[nnzl];
+		}
+		catch (std::bad_alloc& ba) {
+			break;
+		}
 
         // ... symbolically factorize A to produce L
         if ( !factorize(nrows, nnzl, xadj, adjncy, perm, invp, xlnz,
@@ -149,17 +165,26 @@ int SparspakSolver::init(int nrows_, int nnz_, int* xrow, int* xcol)
     aij2lnz(nnz, xrow, xcol, invp, xlnz, xnzsub, nzsub, xaij);
 
     // ... allocate space for coeffs. of L and r.h.s vector
-    lnz = new double[nnzl];
-    diag = new double[nrows];
-    rhs = new double[nrows];
-    if ( !lnz || ! diag || !rhs ) return 0;
+	try {
+		lnz = new double[nnzl];
+		diag = new double[nrows];
+		rhs = new double[nrows];
+	}
+	catch (std::bad_alloc& ba) {
+		return 0;
+	}
 
     // ... allocate space for work arrays used by the solve() method
-    temp = new double[nrows];
-    first = new int[nrows];
-    link = new int[nrows];
-    if ( !temp || !first || !link ) return 0;
-    return 1;
+	try {
+		temp = new double[nrows];
+		first = new int[nrows];
+		link = new int[nrows];
+	}
+	catch (std::bad_alloc& ba) {
+		return 0;
+	}
+
+	return 1;
 }
 
 //-----------------------------------------------------------------------------
@@ -292,24 +317,27 @@ int compress(int n, int nnz, int* xrow, int* xcol, int* xadj, int* adjncy,
     int  *nz = 0;
 
     // ... allocate memory
-    xadj2 = new int[n+1];
-    adjncy2 = new int[2*nnz];
-    nz = new int[n];
-    if ( xadj2 && adjncy2 && nz )
-    {
-        // ... build adjacency lists for the columns of A
-        //     (for each column, store the rows indexes with non-zero coeffs.)
-        buildAdjncy(n, nnz, xrow, xcol, xadj, adjncy, adjncy2, xaij, nz);
+	try {
+		xadj2 = new int[n + 1];
+		adjncy2 = new int[2 * nnz];
+		nz = new int[n];
 
-        // ... sort entries stored in each adjacency list
-        sortAdjncy(n, nnz, xadj, adjncy, xadj2, adjncy2, nz);
+		// ... build adjacency lists for the columns of A
+		//     (for each column, store the rows indexes with non-zero coeffs.)
+		buildAdjncy(n, nnz, xrow, xcol, xadj, adjncy, adjncy2, xaij, nz);
 
-        // ... re-label all row/col indexes to be 1-based
-        //     (since the original Sparspak was written in Fortran)
-        for (int i = 0; i < 2*nnz; i++) adjncy[i]++;
-        for (int i = 0; i <= n; i++) xadj[i]++;
-        flag = 1;
-    }
+		// ... sort entries stored in each adjacency list
+		sortAdjncy(n, nnz, xadj, adjncy, xadj2, adjncy2, nz);
+
+		// ... re-label all row/col indexes to be 1-based
+		//     (since the original Sparspak was written in Fortran)
+		for (int i = 0; i < 2 * nnz; i++) adjncy[i]++;
+		for (int i = 0; i <= n; i++) xadj[i]++;
+		flag = 1;
+	}
+	catch (std::bad_alloc& ba) {
+	}
+
     delete [] xadj2;
     delete [] adjncy2;
     delete [] nz;
@@ -458,9 +486,16 @@ int reorder(int n, int* xadj, int* adjncy, int* perm, int* invp, int& nnzl)
 {
     // ... make a copy of the adjacency list
     int nnz2 = xadj[n];
-    int* adjncy2 = new int[nnz2];
-    if ( ! adjncy2 ) return 0;
-    for (int i = 0; i < nnz2; i++)
+	int* adjncy2;
+
+	try {
+		adjncy2 = new int[nnz2];
+	}
+	catch (std::bad_alloc& ba) {
+		return 0;
+	}
+
+	for (int i = 0; i < nnz2; i++)
     {
         adjncy2[i] = adjncy[i];
     }
@@ -471,22 +506,25 @@ int reorder(int n, int* xadj, int* adjncy, int* perm, int* invp, int& nnzl)
     int *llist = 0;
     int *marker = 0;
     int *dhead = 0;
-    qsize = new int[n];
-    llist = new int[n];
-    marker = new int[n];
-    dhead = new int[n];
-    if ( qsize && llist && marker && dhead )
-    {
-        // ... call Sparspak sp_genmmd to apply multiple
-        //     minimum degree re-ordering to A
-        int delta = -1;
-        int nofsub = 0;
-        int maxint = std::numeric_limits<int>::max();
-        sp_genmmd(&n, xadj, adjncy2, invp, perm, &delta, dhead, qsize,
-                  llist, marker, &maxint, &nofsub);
-        nnzl = nofsub;
-        flag = 1;
-    }
+
+	try {
+		qsize = new int[n];
+		llist = new int[n];
+		marker = new int[n];
+		dhead = new int[n];
+
+		// ... call Sparspak sp_genmmd to apply multiple
+		//     minimum degree re-ordering to A
+		int delta = -1;
+		int nofsub = 0;
+		int maxint = std::numeric_limits<int>::max();
+		sp_genmmd(&n, xadj, adjncy2, invp, perm, &delta, dhead, qsize,
+			llist, marker, &maxint, &nofsub);
+		nnzl = nofsub;
+		flag = 1;
+	}
+	catch (std::bad_alloc& ba) {
+	}
 
     // ... delete work arrays
     delete [] adjncy2;
@@ -510,25 +548,28 @@ int factorize(
     int *mrglnk = 0;
     int *rchlnk = 0;
     int *marker = 0;
-    mrglnk = new int[n];
-    rchlnk = new int[n];
-    marker = new int[n];
 
-    // ... call Sparspak sp_smbfct routine
-    if ( mrglnk && rchlnk && marker )
-    {
-        int maxlnz, maxsub = nnzl;
-        sp_smbfct(n, xadj, adjncy, perm, invp, xlnz, maxlnz, xnzsub,
-                  nzsub, maxsub, mrglnk, rchlnk, marker, flag);
+	try {
+		mrglnk = new int[n];
+		rchlnk = new int[n];
+		marker = new int[n];
 
-        // ... update nnzl with size needed for lnz
-        nnzl = maxlnz;
+		// ... call Sparspak sp_smbfct routine
+		int maxlnz, maxsub = nnzl;
+		sp_smbfct(n, xadj, adjncy, perm, invp, xlnz, maxlnz, xnzsub,
+			nzsub, maxsub, mrglnk, rchlnk, marker, flag);
 
-        // ... a return flag > 0 indicates insufficient memory;
-        //     convert it to an error flag
-        if ( flag > 0 ) flag = 0;
-        else flag = 1;
-    }
+		// ... update nnzl with size needed for lnz
+		nnzl = maxlnz;
+
+		// ... a return flag > 0 indicates insufficient memory;
+		//     convert it to an error flag
+		if (flag > 0) flag = 0;
+		else flag = 1;
+	}
+	catch (std::bad_alloc& ba) {
+	}
+
     delete [] mrglnk;
     delete [] rchlnk;
     delete [] marker;
