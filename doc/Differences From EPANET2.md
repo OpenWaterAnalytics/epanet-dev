@@ -154,7 +154,7 @@ The units of the head tolerance are feet (or meters) while the user's choice of 
 
 ### Tank Dynamics
 
-EPANET 2 used a foward difference (or Euler) method to approximate the change in storage tank water level over a time step as a function of the current flows within the network. This could cause instabilities to occur in and around tanks that were hydraulically coupled to one another. To remedy this, EPANET 3 models tank dynamics using the time weighted implicit formula proposed by Todini (Journal of Hydroinformatics, 13(2):167-180, 2011). A new option named **_TIME_WEIGHT_** sets the weight to be used in this formulation. A value of 0 maintains the forward difference formula of EPANET 2 while a value of 1.0 results in a fully backwards difference formulation.
+EPANET 2 used a foward difference (or Euler) method to approximate the change in storage tank water level over a time step as a function of the current flows within the network. This could cause instabilities to occur in and around tanks that were hydraulically coupled to one another. To remedy this, EPANET 3 models tank dynamics using the time weighted implicit formula proposed by Todini (2011). A new option named **_TIME_WEIGHT_** sets the weight to be used in this formulation. A value of 0 maintains the forward difference formula of EPANET 2 while a value of 1.0 results in a fully backwards difference formulation.
 
 ### Low Resistance Pipes
 
@@ -180,3 +180,6 @@ The binary file used to store computed results has been modified from the EPANET
 * Emitters are prevented from having flow back into the network.
 * The gradient of the Darcy-Weisbach head loss equation now includes the derivative of the friction factor.
 * Proper adjustment of the efficiency curve is now made for variable speed pumps.
+
+### References
+Todini (2011) Extending the global gradient algorithm to unsteadyﬂow extended period simulations of water distributionsystems. Journal of Hydroinformatics, 13(2):167-180
