@@ -38,7 +38,9 @@ In addition, a number of new keywords have been added to the **[OPTIONS]** secti
 | LEAKAGE_MODEL        | Choice of pipe leakage model                     |
 | HYDRAULIC_SOLVER     | Choice of hydraulic solver                       |
 | MATRIX_SOLVER        | Choice of linear equation solver                 |
-| HYDRAULIC_TOLERANCE  | Tolerance in solving hydraulic equations         |
+| HEAD_TOLERANCE       | Tolerance in satisfying head loss equations      |
+| FLOW_TOLERANCE       | Tolerance in satisfying flow continuity          |
+| FLOW_CHANGE_LIMIT    | Convergence limit on link flow change            |
 | STEP_SIZING          | Choice of step sizing method in solving hydraulics |
 | TIME_WEIGHT          | Backwards difference weight for dynamic tanks    |
 | MINIMUM_PRESSURE     | Global pressure below which demand is zero       |
