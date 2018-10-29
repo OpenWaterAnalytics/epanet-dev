@@ -86,9 +86,42 @@ class Utilities
     template <typename T>
     static bool parseNumber(const std::string& s, T &x)
     {
-        std::stringstream ss(s);
-        ss >> x;
-        return !ss.fail();
+        const char* p = s.c_str();
+        T r = 0.0;
+        bool neg = false;
+        if (*p == '-') {
+            neg = true;
+            ++p;
+        }
+        while (*p >= '0' && *p <= '9') {
+            r = (r*10.0) + (*p - '0');
+            ++p;
+        }
+        if (*p == '.') {
+            T f = 0.0;
+            int n = 0;
+            ++p;
+            while (*p >= '0' && *p <= '9') {
+                f = (f*10.0) + (*p - '0');
+                ++p;
+                ++n;
+            }
+
+            while (n > 0)
+            {
+                f = f / 10.0;
+                n--;
+            }
+
+            r += f;
+        }
+        if (neg) {
+            r = -r;
+        }
+
+        x = r;
+
+        return true;
     }
 
 };

@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <ostream>
-#include <map>
+#include <unordered_map>
 
 class Node;
 class Link;
@@ -114,11 +114,11 @@ class Network
   private:
 
     // Hash tables that associate an element's ID name with its storage index.
-    std::map<std::string, Element*>      nodeTable;     //!< hash table for node ID names.
-    std::map<std::string, Element*>      linkTable;     //!< hash table for link ID names.
-    std::map<std::string, Element*>      curveTable;    //!< hash table for curve ID names.
-    std::map<std::string, Element*>      patternTable;  //!< hash table for pattern ID names.
-    std::map<std::string, Element*>      controlTable;  //!< hash table for control ID names.
+    std::unordered_map<std::string, Element*>      nodeTable;     //!< hash table for node ID names.
+    std::unordered_map<std::string, Element*>      linkTable;     //!< hash table for link ID names.
+    std::unordered_map<std::string, Element*>      curveTable;    //!< hash table for curve ID names.
+    std::unordered_map<std::string, Element*>      patternTable;  //!< hash table for pattern ID names.
+    std::unordered_map<std::string, Element*>      controlTable;  //!< hash table for control ID names.
     MemPool *      memPool;       //!< memory pool for network objects
 };
 

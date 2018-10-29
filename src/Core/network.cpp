@@ -107,7 +107,7 @@ int Network::count(Element::ElementType eType)
 
 int Network::indexOf(Element::ElementType eType, const string& name)
 {
-    map<string,Element*> *table;
+    unordered_map<string,Element*> *table;
     switch(eType)
     {
     case Element::NODE:
