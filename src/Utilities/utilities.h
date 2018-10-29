@@ -106,7 +106,14 @@ class Utilities
                 ++p;
                 ++n;
             }
-            r += f / std::pow(10.0, n);
+
+            while (n > 0)
+            {
+                f = f / 10.0;
+                n--;
+            }
+
+            r += f;
         }
         if (neg) {
             r = -r;
