@@ -75,10 +75,28 @@ string Utilities::getFileName(const std::string s)
 
 void Utilities::split(vector<string>& tokens, const string& str)
 {
-    istringstream iss(str);
-    copy(istream_iterator<string>(iss),
-         istream_iterator<string>(),
-         back_inserter<vector<string> >(tokens));
+    string token;
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (str[i] == ' ' || str[i] == '\t')
+        {
+            if (!token.empty())
+            {
+                tokens.push_back(token);
+                token.clear();
+            }
+            continue;
+        }
+        else {
+            token += str[i];
+        }
+    }
+
+    if (!token.empty())
+    {
+        tokens.push_back(token);
+        token.clear();
+    }
 }
 
 vector<string> Utilities::split(const string& str)

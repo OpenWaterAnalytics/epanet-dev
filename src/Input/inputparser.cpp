@@ -65,9 +65,23 @@ void ObjectParser::parseLine(string& line, int section)
 
     // ... read first string token from input line
 
-    if ( network == 0 ) return;
-    istringstream iss(line);
-    iss >> s1;
+    if (network == 0) return;
+    int i = 0;
+    for (; i < line.length(); i++)
+    {
+        char chLine = line[i];
+        if (chLine == ' ' || chLine == '\t')
+        {
+            if (s1.empty())
+                continue;
+            else
+                break;
+        }
+        else
+        {
+            s1 += chLine;
+        }
+    }
 
     // ... create new object whose type is determined by current file section
 
@@ -144,7 +158,21 @@ void ObjectParser::parseLine(string& line, int section)
         if ( network->indexOf(Element::PATTERN, s1 ) >= 0) break;
 
         // Check if pattern is Fixed or Variable
-        iss >> s2;
+        for (; i < line.length(); i++)
+        {
+            char chLine = line[i];
+            if (chLine == ' ' || chLine == '\t')
+            {
+                if (s2.empty())
+                    continue;
+                else
+                    break;
+            }
+            else
+            {
+                s2 += chLine;
+            }
+        }
         type = Pattern::FIXED_PATTERN;
         if (Utilities::match(s2, w_Variable)) type = Pattern::VARIABLE_PATTERN;
 
