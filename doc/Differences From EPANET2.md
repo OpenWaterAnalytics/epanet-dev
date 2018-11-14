@@ -133,8 +133,8 @@ The implementation of these methods can be found in the _Models/demandmodel.h_ a
 
 Pressure dependent pipe leakage can now be modeled using the new **_LEAKAGE_MODEL_** option. The choices are:
 - **NONE** for no leakage modeling.
-- **POWER** for leakage rate = C1 * (P)^C2
-- **FAVAD** for leakage rate = 0.6 * sqrt(2*g) * (C1 * (P)^0.5 + C2 * (P)^1.5)
+- **POWER** : <a href="https://www.codecogs.com/eqnedit.php?latex=Leak&space;=&space;C_1P^{C_2}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Leak&space;=&space;C_1P^{C_2}" title="Leak = C_1P^{C_2}" /></a>
+- **FAVAD** : <a href="https://www.codecogs.com/eqnedit.php?latex=Leak&space;=&space;0.6&space;\sqrt{2g}&space;\left&space;(&space;C_1&space;P^{0.5}&space;&plus;&space;C_2&space;P^{1.5}&space;\right)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Leak&space;=&space;0.6&space;\sqrt{2g}&space;\left&space;(&space;C_1&space;P^{0.5}&space;&plus;&space;C_2&space;P^{1.5}&space;\right)" title="Leak = 0.6 \sqrt{2g} \left ( C_1 P^{0.5} + C_2 P^{1.5} \right)" /></a>
 
 For the **Power** model the leakage rate is in flow units/1000 length units of pipe (ft or m), P is the average pressure (psi or m) across the pipe and C1 and C2 are user supplied coefficients. For the **FAVAD** model, the leakage rate is cfs/1000 ft (or cms/km) of pipe, P is the average pressure head (ft or m) across the pipe, C1 is the area (sq. ft. or sq. m) of leaks per 1000 ft or m of pipe and C2 is the change in leakage area per change in pressure head per 1000 length units of pipe.
 
