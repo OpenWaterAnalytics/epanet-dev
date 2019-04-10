@@ -60,7 +60,7 @@ void ReportFields::setField(int    type,
         field = &linkFields[index];
     }
     else return;
-    if ( enabled >= 0 ) field->enabled = enabled;
+    if (enabled >= 0) field->enabled = !!enabled;
     if ( precision >= 0 ) field->precision = precision;
     if ( lowerLimit >= 0.0 ) field->lowerLimit = lowerLimit;
     if ( upperLimit >= 0.0 ) field->upperLimit = upperLimit;

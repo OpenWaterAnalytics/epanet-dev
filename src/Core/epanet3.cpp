@@ -199,7 +199,7 @@ int EN_runProject(EN_Project p)    // <<=============  TO BE COMPLETED
 
 int EN_initSolver(int initFlows, EN_Project p)
 {
-    return project(p)->initSolver(initFlows);
+    return project(p)->initSolver(!!initFlows);
 }
 
 //-----------------------------------------------------------------------------

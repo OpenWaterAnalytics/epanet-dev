@@ -246,6 +246,6 @@ void QualEngine::setFlowDirections()
 {
     for (int i = 0; i < linkCount; i++)
     {
-    	flowDirection[i] = Utilities::sign(network->link(i)->flow);
+    	flowDirection[i] = static_cast<char>(Utilities::sign(network->link(i)->flow));
     }
 }

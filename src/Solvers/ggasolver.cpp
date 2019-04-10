@@ -67,7 +67,7 @@ GGASolver::GGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
 
     hLossEvalCount  = 0;
     trialsLimit     = 0;
-    reportTrials    = network->option(Options::REPORT_TRIALS);
+    reportTrials    = !!network->option(Options::REPORT_TRIALS);
 
     headErrLimit    = 0.0;
     flowErrLimit    = 0.0;

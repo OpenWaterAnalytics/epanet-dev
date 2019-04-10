@@ -346,7 +346,7 @@ int HydEngine::resolvePressureDeficiency(int& trials)
     int trials4 = 0;
     int count1 = 0;
     int count2 = 0;
-    bool reportTrials = ( network->option(Options::REPORT_TRIALS) );
+    bool reportTrials = !!network->option(Options::REPORT_TRIALS);
 
     // ... re-solve network hydraulics with the pressure deficient junctions
     //     set to fixed grade (which occurred in isPressureDeficient())

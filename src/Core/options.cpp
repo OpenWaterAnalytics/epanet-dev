@@ -324,7 +324,7 @@ void Options::adjustOptions()
     timeOptions[RULE_STEP] = min(timeOptions[RULE_STEP], timeOptions[HYD_STEP]);
 
     // ... make REPORT_STATUS true if REPORT_TRIALS is true
-    if ( indexOptions[REPORT_TRIALS] == true ) indexOptions[REPORT_STATUS] = true;
+    if ( !!indexOptions[REPORT_TRIALS] ) indexOptions[REPORT_STATUS] = true;
 }
 
 //-----------------------------------------------------------------------------

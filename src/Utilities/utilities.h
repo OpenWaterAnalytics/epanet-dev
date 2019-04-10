@@ -87,29 +87,29 @@ class Utilities
     static bool parseNumber(const std::string& s, T &x)
     {
         const char* p = s.c_str();
-        T r = 0.0;
+        T r = (T)(0.0);
         bool neg = false;
         if (*p == '-') {
             neg = true;
             ++p;
         }
         while (*p >= '0' && *p <= '9') {
-            r = (r*10.0) + (*p - '0');
+            r = (T)((r*10.0) + (*p - '0'));
             ++p;
         }
         if (*p == '.') {
-            T f = 0.0;
+            T f = (T)0.0;
             int n = 0;
             ++p;
             while (*p >= '0' && *p <= '9') {
-                f = (f*10.0) + (*p - '0');
+                f = (T)((f*10.0) + (*p - '0'));
                 ++p;
                 ++n;
             }
 
             while (n > 0)
             {
-                f = f / 10.0;
+                f = (T)(f / 10.0);
                 n--;
             }
 

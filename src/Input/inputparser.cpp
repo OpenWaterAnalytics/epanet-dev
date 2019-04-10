@@ -67,7 +67,7 @@ void ObjectParser::parseLine(string& line, int section)
 
     if (network == 0) return;
     int i = 0;
-    for (; i < line.length(); i++)
+    for (; i < static_cast<int>(line.length()); i++)
     {
         char chLine = line[i];
         if (chLine == ' ' || chLine == '\t')
@@ -158,7 +158,7 @@ void ObjectParser::parseLine(string& line, int section)
         if ( network->indexOf(Element::PATTERN, s1 ) >= 0) break;
 
         // Check if pattern is Fixed or Variable
-        for (; i < line.length(); i++)
+        for (; i < static_cast<int>(line.length()); i++)
         {
             char chLine = line[i];
             if (chLine == ' ' || chLine == '\t')

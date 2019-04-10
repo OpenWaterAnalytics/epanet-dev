@@ -76,7 +76,7 @@ string Utilities::getFileName(const std::string s)
 void Utilities::split(vector<string>& tokens, const string& str)
 {
     string token;
-    for (int i = 0; i < str.length(); i++)
+    for (int i = 0; i < static_cast<int>(str.length()); i++)
     {
         if (str[i] == ' ' || str[i] == '\t')
         {
@@ -115,7 +115,7 @@ string Utilities::upperCase(const string& s)
 {
     string s1 = s;
     //transform(s1.begin(), s1.end(), s1.begin(), ::toupper);
-    for(int i=0; s1[i]!=0; i++) s1[i] = toupper((int)s1[i]);
+    for(char i=0; s1[i]!=0; i++) s1[i] = (char)toupper(s1[i]);
     return s1;
 }
 
