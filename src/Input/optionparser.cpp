@@ -67,7 +67,7 @@ static const char* epanet2Keywords[] =
      "PATTERN", "DEMAND", "EMITTER","TOLERANCE", "MAP", 0};
 
 static const char* epanetQualKeywords[] =
-    {"NONE", "CHEMICAL", "AGE", "TRACE", 0};
+    {"NONE", "AGE", "TRACE", "CHEMICAL", 0};
 
 //-----------------------------------------------------------------------------
 
@@ -475,6 +475,9 @@ void OptionParser::parseQualOption(const string& s2, const string& s3,
     {
         if ( network->option(Options::QUAL_TYPE) == Options::TRACE )
         {
+            int nodeIndex = network->indexOf(Element::NODE, s3);
+            if (i < 0) throw InputError(InputError::UNDEFINED_OBJECT, s3);
+            network->options.setOption(Options::TRACE_NODE, nodeIndex);
             network->options.setOption(Options::TRACE_NODE_NAME, s3);
         }
         if ( network->option(Options::QUAL_TYPE) == Options::CHEM )

@@ -211,6 +211,10 @@ int Options::setOption(StringOption option, const string& value)
         if ( i == MGL || i == UGL ) indexOptions[QUAL_UNITS] = i;
         break;
 
+    case TRACE_NODE_NAME:
+        stringOptions[TRACE_NODE_NAME] = value;
+        break;
+
     default: break;
     }
     return 0;
