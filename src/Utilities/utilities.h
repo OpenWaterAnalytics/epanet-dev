@@ -121,7 +121,13 @@ class Utilities
 
         x = r;
 
-        return true;
+        if (*p == '\0')
+            return true;
+
+        // for some numbers in scientific notation 
+        std::stringstream ss(s);
+        ss >> x;
+        return !ss.fail();
     }
 
 };
