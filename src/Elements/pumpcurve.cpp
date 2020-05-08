@@ -257,7 +257,7 @@ void PumpCurve::customCurveHeadLoss(
 
     // ... find slope and intercept of curve segment
 
-    curve->findSegment(q, r, h0);
+    curve->findSegment(q / speed, r, h0);
 
     // ... adjust slope and intercept for pump speed
 
