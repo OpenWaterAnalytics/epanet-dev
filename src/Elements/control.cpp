@@ -117,9 +117,10 @@ int Control::timeToActivate(Network* network, int t, int tod)
 
 //-----------------------------------------------------------------------------
 
-void Control::applyPressureControls(Network* network)
+bool Control::applyPressureControls(Network* network)
 {
     bool makeChange = true;
+    bool changed = false;
 
     for (Control* control : network->controls)
     {
@@ -130,10 +131,13 @@ void Control::applyPressureControls(Network* network)
             ||   (control->levelType == HI_LEVEL &&
                   control->node->head > control->head) )
             {
-                control->activate(makeChange, network->msgLog);
+                if (control->activate(makeChange, network->msgLog))
+                    changed = true;
             }
         }
     }
+
+    return changed;
 }
 
 //-----------------------------------------------------------------------------

@@ -17,6 +17,7 @@
 #include "matrixsolver.h"
 #include "Core/network.h"
 #include "Core/constants.h"
+#include "Elements/control.h"
 #include "Elements/junction.h"
 #include "Elements/tank.h"
 #include "Elements/link.h"
@@ -659,7 +660,8 @@ bool GGASolver::linksChangedStatus()
 	//if ( result && reportTrials ) network->msgLog << endl;
 
     // --- look for status changes caused by pressure switch controls
-    ////////  TO BE ADDED  ////////
-    //changeCount += control_ApplyPressureControls();
+    if (Control::applyPressureControls(network))
+        result = true;
+
     return result;
 }

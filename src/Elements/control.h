@@ -36,8 +36,9 @@ class Control: public Element
     Control(int type_, std::string name_);
     ~Control();
 
-    // Applies all pressure controls to the pipe network
-    static  void     applyPressureControls(Network* network);
+    // Applies all pressure controls to the pipe network,
+    // return true if status of any link changes
+    static  bool     applyPressureControls(Network* network);
 
     // Sets the properties of a control
     void    setProperties(
