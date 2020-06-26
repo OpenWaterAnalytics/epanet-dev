@@ -109,7 +109,11 @@ bool Pump::changeStatus(int s, bool makeChange, const string reason, ostream& ms
         if ( makeChange )
         {
             if ( s == LINK_OPEN && speed == 0.0 ) speed = 1.0;
-            if ( s == LINK_CLOSED ) flow = ZERO_FLOW;
+            if ( s == LINK_CLOSED )
+            {
+                flow = ZERO_FLOW;
+                speed = 0.0;
+            }
             msgLog << "\n    " << reason;
             status = s;
         }
