@@ -218,7 +218,7 @@ int EN_advanceSolver(int *dt, EN_Project p)
 
 //-----------------------------------------------------------------------------
 
-int EN_openOutput(const char* fname, EN_Project p)
+int EN_openOutputFile(const char* fname, EN_Project p)
 {
     return project(p)->openOutput(fname);
 }
@@ -232,7 +232,7 @@ int EN_saveOutput(EN_Project p)
 
 //-----------------------------------------------------------------------------
 
-int EN_openReport(const char* fname, EN_Project p)
+int EN_openReportFile(const char* fname, EN_Project p)
 {
     return project(p)->openReport(fname);
 }

@@ -200,6 +200,25 @@ int Utilities::getSeconds(const string& strTime, const string& strUnits)
     {
         int h = 0, m = 0, s = 0;
         if (sscanf(strTime.c_str(), "%d:%d:%d", &h, &m, &s) == 0) return -1;
+
+        if (strUnits.size() > 0)
+        {
+            if (match(strUnits, s_AM))
+            {
+                if (h >= 13) return -1;
+                if (h == 12) h -= 12;
+            }
+            else if (match(strUnits, s_PM))
+            {
+                if (h >= 13) return -1;
+                if (h < 12)  h += 12;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
         return 3600*h + 60*m + s;
     }
 

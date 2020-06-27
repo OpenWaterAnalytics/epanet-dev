@@ -89,7 +89,7 @@ Right now there is only a single choice of each solver but additional alternativ
 The way in which the API functions are used to analyze a network have changed. The differences between the version 2 and 3 APIs can be summarized as follows:
 * Function names now begin with an "EN_" prefix followed by a name in lower camel case.
 * You must first call **_EN_createProject_** to create an EPANET project object before using other API functions that include the project as an argument. This allows one to use parallel processing on a number of different projects in a thread safe manner.
-* **_ENopen_** has been replaced with **_EN_openReport_**, **_EN_openOutput_**, and **_EN_loadProject_**.
+* **_ENopen_** has been replaced with **_EN_openReportFile_**, **_EN_openOutputFile_**, and **_EN_loadProject_**.
 * **_EN_initSolver_** replaces **_ENopenH_**, **_ENinitH_**, **_ENopenQ_** and **_ENinitQ_**.
 * **_EN_runSolver_** replaces **_ENrunH_** for computing hydraulics at the current time period.
 * **_EN_advanceSolver_** replaces **_ENnextH_**, **_EN_runQ_**, and **_ENnextQ_**. It advances the simulation to the next time when hydraulics are to be updated while computing water quality over this time interval as need be.
@@ -111,7 +111,7 @@ void myEpanet3Runner(char* inpFile, char* rptFile)
     do {
         EN_runSolver(&t, p);
         EN_advanceSolver(&dt, p);
-    while ( dt > 0 );
+    } while ( dt > 0 );
     EN_writeReport(p);
     EN_deleteProject(p);
 }
