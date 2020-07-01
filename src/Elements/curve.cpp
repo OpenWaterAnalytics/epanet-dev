@@ -71,7 +71,7 @@ double Curve::getYofX(double x)
         {
             double dx = xData[i] - xData[i-1];
             if ( dx == 0.0 ) return yData[i-1];
-            return yData[i-1] + (x - yData[i-1]) / dx * (yData[i] - yData[i-1]);
+            return yData[i-1] + (x - xData[i-1]) / dx * (yData[i] - yData[i-1]);
         }
     }
     return yData[xData.size()-1];
