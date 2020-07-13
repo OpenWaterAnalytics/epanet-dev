@@ -233,10 +233,10 @@ int Utilities::getSeconds(const string& strTime, const string& strUnits)
 
     // determine time units and convert time accordingly
 
-    if (match(strUnits, s_Day) == 0)    return (int) (3600. * 24. * t);
-    if (match(strUnits, s_Hour) == 0)   return (int) (3600. * t);
-    if (match(strUnits, s_Minute) == 0) return (int) (60. * t);
-    if (match(strUnits, s_Second) == 0) return (int) t;
+    if (match(strUnits, s_Day))    return (int) (3600. * 24. * t);
+    if (match(strUnits, s_Hour))   return (int) (3600. * t);
+    if (match(strUnits, s_Minute)) return (int) (60. * t);
+    if (match(strUnits, s_Second)) return (int) t;
 
     // if AM/PM supplied, time is in hours and adjust it accordingly
 
