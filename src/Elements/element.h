@@ -28,10 +28,12 @@ class Element
     std::string name;       //!< element's ID name
     int         index;      //!< index in array of elements
 
+  protected:
+    Element(const Element& e);
   private:
 
     // Elements can't be copied or tested for equality
-    Element(const Element& e);
+    //Element(const Element& e);
     Element& operator=(const Element& e);
 };
 
