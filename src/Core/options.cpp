@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -33,11 +33,17 @@ static const char* flowUnitsWords[] =
 // Keywords for PressureUnits enumeration in options.h
 static const char* pressureUnitsWords[] = {"PSI", "METERS", "PKA", 0};
 
+// Keywords for Hyd_Solver enumeration in options.h
+static const char* hydSolverWords[] = { "GGA", "RWCGGA", 0 };
+
 // Headloss formula keywords
 static const char* headlossModelWords[] = {"H-W", "D-W", "C-M", 0};
 
 // Hydraulic Newton solver step size method names
-static const char* stepSizingWords[] = {"FULL", "RELAXATION", "LINESEARCH", 0};
+static const char* stepSizingWords[] = {"FULL", "RELAXATION", "LINESEARCH", "BRF", "ARF", 0};
+
+// Valve representation types names
+static const char* valveRepWords[] = { "Toe", "Cd", 0 };
 
 static const char* ifUnbalancedWords[] = {"STOP", "CONTINUE", 0};
 
@@ -80,6 +86,7 @@ void Options::setDefaults()
     stringOptions[LEAKAGE_MODEL]           = "NONE";
     stringOptions[HYD_SOLVER]              = "GGA";
     stringOptions[STEP_SIZING]             = "FULL";
+	stringOptions[VALVE_REP_TYPE]          = "Cd";
     stringOptions[MATRIX_SOLVER]           = "SPARSPAK";
     stringOptions[DEMAND_PATTERN_NAME]     = "";
     stringOptions[QUAL_MODEL]              = "NONE";
@@ -109,7 +116,7 @@ void Options::setDefaults()
     valueOptions[MINIMUM_PRESSURE]         = 0.0;
     valueOptions[SERVICE_PRESSURE]         = 0.0;
     valueOptions[PRESSURE_EXPONENT]        = 0.5;
-    valueOptions[EMITTER_EXPONENT]         = 0.5;
+    valueOptions[EMITTER_EXPONENT]         = 1.18;
     valueOptions[DEMAND_MULTIPLIER]        = 1.0;
 
     valueOptions[RELATIVE_ACCURACY]        = 0.0;
@@ -117,6 +124,7 @@ void Options::setDefaults()
     valueOptions[FLOW_TOLERANCE]           = 0.0;
     valueOptions[FLOW_CHANGE_LIMIT]        = 0.0;
     valueOptions[TIME_WEIGHT]              = 0.0;
+	valueOptions[TEMP_DISC_PARA]           = 0.0;
 
     valueOptions[ENERGY_PRICE]             = 0.0;
     valueOptions[PEAKING_CHARGE]           = 0.0;
@@ -162,11 +170,23 @@ int Options::setOption(StringOption option, const string& value)
         stringOptions[HEADLOSS_MODEL] = headlossModelWords[i];
         break;
 
+	case HYD_SOLVER:
+		i = Utilities::findFullMatch(value, hydSolverWords);
+		if (i < 0) return InputError::INVALID_KEYWORD;
+		stringOptions[HYD_SOLVER] = hydSolverWords[i];
+		break;
+
     case STEP_SIZING:
         i = Utilities::findFullMatch(value, stepSizingWords);
         if (i < 0) return InputError::INVALID_KEYWORD;
         stringOptions[STEP_SIZING] = stepSizingWords[i];
         break;
+
+	case VALVE_REP_TYPE:
+		i = Utilities::findFullMatch(value, valveRepWords);
+		if (i < 0) return InputError::INVALID_KEYWORD;
+		stringOptions[VALVE_REP_TYPE] = valveRepWords[i];
+		break;
 
     case DEMAND_MODEL:
         i = Utilities::findFullMatch(value, demandModelWords);
@@ -364,6 +384,8 @@ string Options::hydOptionsToStr()
     }
     s << setw(w) << "TIME_WEIGHT";
     s << valueOptions[TIME_WEIGHT] << "\n";
+	s << setw(w) << "TEMP_DISC_PARA";
+	s << valueOptions[TEMP_DISC_PARA] << "\n";
     s << setw(w) << "STEP_SIZING";
     s << stringOptions[STEP_SIZING] << "\n";
     s << setw(w) << "IF_UNBALANCED";

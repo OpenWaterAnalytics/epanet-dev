@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -96,15 +96,16 @@ enum NodeTypes {
     EN_TANK};        //2
 
 enum LinkTypes {
-    EN_CVPIPE,       //0
-    EN_PIPE,         //1
-    EN_PUMP,         //2
-    EN_PRV,          //3
-    EN_PSV,          //4
-    EN_PBV,          //5
-    EN_FCV,          //6
-    EN_TCV,          //7
-    EN_GPV};         //8
+	EN_CVPIPE,       //0
+	EN_PIPE,         //1
+	EN_PUMP,         //2
+	EN_PRV,          //3
+	EN_PSV,          //4
+	EN_PBV,          //5
+	EN_FCV,          //6
+	EN_TCV,          //7
+	EN_GPV,          //8
+	EN_CCV};         //9
 
 enum QualModelTypes {
     EN_NONE,         //0
@@ -206,6 +207,7 @@ int        EN_getLinkId(int, char *, EN_Project);
 int        EN_getLinkType(int, int *, EN_Project);
 int        EN_getLinkNodes(int, int *, int *, EN_Project);
 int        EN_getLinkValue(int, int, double *, EN_Project);
+int		   EN_setLinkValue(int, int, double, EN_Project);
 
 //==================================================================================
 /*        TO BE ADDED

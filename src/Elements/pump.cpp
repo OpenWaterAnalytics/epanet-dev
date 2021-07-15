@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -72,6 +72,9 @@ void Pump::setInitFlow()
 {
     // ... initial flow is design point of pump curve
     flow = pumpCurve.qInit * initSetting;
+	pastFlow = 0;
+	pastHloss = 0;
+	pastSetting = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -82,6 +85,7 @@ void Pump::findHeadLoss(Network* nw, double q)
     if ( speed == 0.0  || status == LINK_CLOSED || status == TEMP_CLOSED )
     {
         HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+		inertialTerm = MIN_GRADIENT;
     }
 
     // --- get head loss from pump curve and add a check valve
@@ -90,6 +94,7 @@ void Pump::findHeadLoss(Network* nw, double q)
     {
         pumpCurve.findHeadLoss(speed, q, hLoss, hGrad);
         if ( !isHpPump() ) HeadLossModel::addCVHeadLoss(q, hLoss, hGrad);
+		inertialTerm = 10.76; // Approximate value for pump inertial term
     }
 }
 

@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -36,6 +36,8 @@ class Reservoir: public Node
     int      type() { return Node::RESERVOIR; }
     void     convertUnits(Network* nw);
     void     setFixedGrade();
+	double   pastHead;               //!< water elev. in previous time period (ft)
+	double   ph;                     //!< synonym of past head
 
     // Properties
     Pattern* headPattern;    //!< time pattern for reservoir's head

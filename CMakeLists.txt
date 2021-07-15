@@ -64,6 +64,7 @@ src/Output/projectwriter.cpp
 src/Output/reportfields.cpp
 src/Output/reportwriter.cpp
 src/Solvers/ggasolver.cpp
+src/Solvers/rwcggasolver.cpp
 src/Solvers/hydsolver.cpp
 src/Solvers/ltdsolver.cpp
 src/Solvers/matrixsolver.cpp
@@ -124,6 +125,7 @@ src/Output/projectwriter.h
 src/Output/reportfields.h
 src/Output/reportwriter.h
 src/Solvers/ggasolver.h
+src/Solvers/rwcggasolver.h
 src/Solvers/hydsolver.h
 src/Solvers/ltdsolver.h
 src/Solvers/matrixsolver.h

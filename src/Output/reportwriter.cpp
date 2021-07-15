@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -43,7 +43,7 @@ void ReportWriter::writeHeading()
     sout << "\n  *                           E P A N E T                          *";
     sout << "\n  *                   Hydraulic and Water Quality                  *";
     sout << "\n  *                   Analysis for Pipe Networks                   *";
-    sout << "\n  *                         Version 3.0.000                        *";
+    sout << "\n  *                         Version 3.1.000                        *";
     sout << "\n  ******************************************************************\n";
 }
 
@@ -96,6 +96,7 @@ void ReportWriter::writeSummary(string inpFileName)
     sout << "\n  Number of Pumps ............... " << nPumps;
     sout << "\n  Number of Valves .............. " << nValves;
 
+	sout << "\n  Hydraulic Solver .............. " << network->option(Options::HYD_SOLVER); // Two different solver could be selected by this option (GGA and RWC-GGA)
     sout << "\n  Head Loss Model ............... " << network->option(Options::HEADLOSS_MODEL);
     sout << "\n  Leakage Model ................. " << network->option(Options::LEAKAGE_MODEL);
     sout << "\n  Demand Model .................. " << network->option(Options::DEMAND_MODEL);
@@ -104,6 +105,9 @@ void ReportWriter::writeSummary(string inpFileName)
     sout << "\n  Head Tolerance ................ " << network->option(Options::HEAD_TOLERANCE);
     sout << "\n  Flow Tolerance ................ " << network->option(Options::FLOW_TOLERANCE);
     sout << "\n  Flow Change Limit ............. " << network->option(Options::FLOW_CHANGE_LIMIT);
+	sout << "\n  Temporal Disc. Para. .......... " << network->option(Options::TEMP_DISC_PARA);  // A Discretization Parameter which is in between 0.5 and 1. This option is valid for only RWC-GGA Hydraulic Solver.
+	sout << "\n  Step Sizing Method ............ " << network->option(Options::STEP_SIZING);     // An option to provide convergence in case of pressure dependent demand. Full, ARF, and BRF are preferences.
+	sout << "\n  CCV Representation Type ....... " << network->option(Options::VALVE_REP_TYPE);  // CCV has two types: Toe and Cd Valves. 
 
     sout << "\n  Quality Model ................. " << network->option(Options::QUAL_MODEL);
     if ( network->option(Options::QUAL_TYPE) == Options::TRACE )

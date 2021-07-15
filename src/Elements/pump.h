@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -43,6 +43,7 @@ class Pump: public Link
     void        setInitFlow();
     void        setInitStatus(int s);
     void        setInitSetting(double s);
+
     double      getSetting(Network* nw) { return speed; }
 
     bool        isHpPump() { return pumpCurve.isConstHP(); }

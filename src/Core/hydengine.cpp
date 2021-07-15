@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -173,12 +173,18 @@ int  HydEngine::solve(int* t)
 
     //if ( network->option(Options::REPORT_TRIALS) )  network->msgLog << endl;
     int trials = 0;
-    int statusCode = hydSolver->solve(hydStep, trials);
+    int statusCode = hydSolver->solve(hydStep, trials, currentTime);
 
     if ( statusCode == HydSolver::SUCCESSFUL && isPressureDeficient() )
     {
         statusCode = resolvePressureDeficiency(trials);
     }
+	
+	for (Link* link : network->links)
+	{
+		link->previousStatus = link->status;
+	}
+	
     reportDiagnostics(statusCode, trials);
     if ( halted ) throw SystemError(SystemError::HYDRAULICS_SOLVER_FAILURE);
     return statusCode;
@@ -212,6 +218,9 @@ void HydEngine::advance(int* tstep)
 
     updateEnergyUsage();
     updateTanks();
+
+	pastJunction();
+	pastLink();
 
     // ... advance time counters
 
@@ -289,7 +298,7 @@ void HydEngine::updateCurrentConditions()
 
     int    p = network->option(Options::DEMAND_PATTERN);
     if ( p >= 0 ) patternFactor = network->pattern(p)->currentFactor();
-
+	
     // ... update node conditions
 
     for (Node* node : network->nodes)
@@ -299,6 +308,26 @@ void HydEngine::updateCurrentConditions()
 
         // ... set its fixed grade state (for tanks & reservoirs)
         node->setFixedGrade();
+
+		if (node->type() == Node::JUNCTION)
+		{
+			double ph;
+			node->pastHead = node->head;
+			node->ph = node->head;
+			
+		}
+		else if (node->type() == Node::RESERVOIR)
+		{
+			node->pastHead = node->head;
+			node->ph = node->head;
+		}
+
+		else if (node->type() == Node::TANK)
+		{
+			node->pastHead = node->head;
+			node->ph = node->head;
+		}
+
     }
 
     // ... update link conditions
@@ -307,6 +336,13 @@ void HydEngine::updateCurrentConditions()
     {
         // ... open a temporarily closed link
         //if ( link->status >= Link::TEMP_CLOSED ) link->status = Link::LINK_OPEN;
+
+		if (link->type() == Link::PIPE || Link::PUMP || Link::VALVE)
+		{
+			link->pastFlow = link->flow;
+			link->pastHloss = link->hLoss;
+			link->pastSetting = link->setting;
+		}
 
         // ... apply pattern-based pump or valve setting
         link->applyControlPattern(network->msgLog);
@@ -352,7 +388,7 @@ int HydEngine::resolvePressureDeficiency(int& trials)
     //     set to fixed grade (which occurred in isPressureDeficient())
 
     if ( reportTrials ) network->msgLog << s_ReSolve1;
-    int statusCode = hydSolver->solve(hydStep, trials2);
+    int statusCode = hydSolver->solve(hydStep, trials2, currentTime);
     if ( statusCode == HydSolver::FAILED_ILL_CONDITIONED ) return statusCode;
 
     // ... adjust actual demands for the pressure deficient junctions
@@ -375,7 +411,7 @@ int HydEngine::resolvePressureDeficiency(int& trials)
         network->msgLog << "\n\n    " << count1 << s_Reductions1;
         network->msgLog << s_ReSolve2;
     }
-    statusCode = hydSolver->solve(hydStep, trials3);
+    statusCode = hydSolver->solve(hydStep, trials3, currentTime);
 
     // ... check once more for any remaining pressure deficiencies
 
@@ -401,7 +437,7 @@ int HydEngine::resolvePressureDeficiency(int& trials)
             network->msgLog << "\n    " << count2 << s_Reductions2;
             network->msgLog << s_ReSolve2 << "\n";
         }
-        statusCode = hydSolver->solve(hydStep, trials4);
+        statusCode = hydSolver->solve(hydStep, trials4, currentTime);
     }
 
     trials += trials2 + trials3 + trials4;
@@ -592,13 +628,48 @@ void HydEngine::updateTanks()
         {
             Tank* tank = static_cast<Tank*>(node);
             tank->pastHead = tank->head;
+			tank->ph = tank->head;
             tank->pastVolume = tank->volume;
+			tank->pastArea = tank->area;
             tank->pastOutflow = tank->outflow;
             node->fixedGrade = true;
             tank->updateVolume(hydStep);
             tank->updateArea();
         }
     }
+}
+
+void HydEngine::pastJunction()
+{
+	for (Node* node : network->nodes)
+	{
+		if (node->type() == Node::JUNCTION)
+		{
+			double ph;
+			node->pastHead = node->head;
+			node->ph = node->head;
+			
+		}
+		else if (node->type() == Node::RESERVOIR)
+		{
+			node->pastHead = node->head;
+			node->ph = node->head;
+		}
+	}
+}
+
+
+void HydEngine::pastLink()
+{
+	for (Link* link : network->links)
+	{
+		if (link->type() == Link::PIPE || link->type() == Link::PUMP || link->type() == Link::VALVE)
+		{
+			link->pastFlow = link->flow;
+			link->pastHloss = link->hLoss;
+			link->pastSetting = link->setting;
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------

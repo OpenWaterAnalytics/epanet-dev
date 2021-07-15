@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -9,6 +9,7 @@
 
 // Include header files for the different hydraulic solvers here.
 #include "ggasolver.h"
+#include "rwcggasolver.h"
 
 using namespace std;
 
@@ -21,5 +22,9 @@ HydSolver::~HydSolver() {}
 HydSolver* HydSolver::factory(const string name, Network* nw, MatrixSolver* ms)
 {
     if (name == "GGA") return new GGASolver(nw, ms);
-    return nullptr;
+    // return nullptr;
+	
+	else if (name == "RWCGGA") return new RWCGGASolver(nw, ms); 
+    return nullptr;	
+	
 }

@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -36,7 +36,7 @@ class HydSolver
     HydSolver(Network* nw, MatrixSolver* ms);
     virtual ~HydSolver();
     static  HydSolver* factory(const std::string name, Network* nw, MatrixSolver* ms);
-    virtual int solve(double tstep, int& trials) = 0;
+    virtual int solve(double tstep, int& trials, int currentTime) = 0;
 
   protected:
 

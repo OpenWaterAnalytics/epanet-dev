@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -272,6 +272,40 @@ int DataManager::getLinkValue(int index, int param, double* value, Network* nw)
 
 //-----------------------------------------------------------------------------
 
+int DataManager::setLinkValue(int index, int param, double value, Network* nw)
+{
+	if (index < 0 || index >= nw->count(Element::LINK)) return 205;
+	Link* link = nw->link(index);
+	switch (param)
+	{
+	case EN_DIAMETER:
+		link->diameter = value / nw->ucf(Units::DIAMETER);
+		link->setLossFactor();
+		link->setResistance(nw);
+		break;
+	case EN_MINORLOSS:
+		link->lossCoeff = value;
+		link->setLossFactor();
+		break;
+	case EN_INITSTATUS:
+		link->initStatus = value;
+		break;
+	case EN_INITSETTING:
+		link->initSetting = value;
+		break;
+	case EN_FLOW:
+		link->flow = value / nw->ucf(Units::FLOW);
+		break;
+	case EN_STATUS:
+		link->status = value;
+		break;
+	case EN_ENERGY:
+		break;                         // TO BE ADDED
+	}
+	return 0;
+}
+
+//-----------------------------------------------------------------------------
 int getTankValue(int param, Node* node, double* value, Network* nw)
 {
     double lcf = nw->ucf(Units::LENGTH);

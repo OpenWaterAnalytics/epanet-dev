@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -28,6 +28,7 @@ struct DataManager
     static int getLinkType(int index, int* type, Network* nw);
     static int getLinkNodes(int index, int* fromNode, int* toNode, Network* nw);
     static int getLinkValue(int index, int param, double* value, Network* nw);
+	static int setLinkValue(int index, int param, double v, Network* nw);
 };
 
 #endif // DATAMANAGER_H_

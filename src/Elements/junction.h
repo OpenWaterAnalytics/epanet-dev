@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -44,6 +44,8 @@ class Junction: public Node
     double            pMin;            //!< minimum pressure head to have demand (ft)
     double            pFull;           //!< pressure head required for full demand (ft)
     Emitter*          emitter;         //!< emitter object
+	double            pastHead;        //!< Head on the previous time step
+	double            ph;             //!< synonym of past head
 };
 
 #endif

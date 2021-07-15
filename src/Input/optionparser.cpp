@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -22,7 +22,7 @@ static const char* stringOptionKeywords[] =
     {"HYDRAULICS_FILE",
      "", "", // placeholders for file names
      "MAP_FILE", "HEADLOSS_MODEL", "DEMAND_MODEL", "LEAKAGE_MODEL",
-     "HYDRAULIC_SOLVER", "STEP_SIZING", "MATRIX_SOLVER", "",
+     "HYD_SOLVER", "STEP_SIZING", "VALVE_REP_TYPE", "MATRIX_SOLVER", "",
      "QUALITY_MODEL", "QUALITY_NAME", "QUALITY_UNITS", 0};
 
 // ... Keywords for IndexOption enumeration in options.h
@@ -46,8 +46,8 @@ static const char* valueOptionKeywords[] =
      "MINIMUM_PRESSURE", "SERVICE_PRESSURE", "PRESSURE_EXPONENT",
 	 "EMITTER_EXPONENT", "LEAKAGE_COEFF1", "LEAKAGE_COEFF2",
 	 "RELATIVE_ACCURACY", "HEAD_TOLERANCE", "FLOW_TOLERANCE",
-	 "FLOW_CHANGE_LIMIT", "TIME_WEIGHT", "SPECIFIC_DIFFUSIVITY",
-	 "QUALITY_TOLERANCE", 0};
+	 "FLOW_CHANGE_LIMIT", "TIME_WEIGHT", "TEMP_DISC_PARA", "SPECIFIC_DIFFUSIVITY",
+	 "QUALITY_TOLERANCE",  0};
 
 // ... Keywords for TimeOption enumeration in options.h
 static const char* timeOptionKeywords[] =

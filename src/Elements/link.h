@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -53,6 +53,7 @@ class Link: public Element
     virtual void   setInitStatus(int s) {}
     virtual void   setInitSetting(double s) {}
     virtual void   setResistance(Network* nw) {}
+	virtual void   setLossFactor() {}
 
     // Retrieves hydraulic variables
     virtual double getVelocity() {return 0.0;}
@@ -103,12 +104,17 @@ class Link: public Element
 
     // Computed Variables
     int            status;           //!< current status
+	int            previousStatus;   //!< Status on the previous time step
     double         flow;             //!< flow rate (cfs)
+	double         pastFlow;         // Yeni
     double         leakage;          //!< leakage rate (cfs)
     double         hLoss;            //!< head loss (ft)
+	double         pastHloss;        // Yeni
     double         hGrad;            //!< head loss gradient (ft/cfs)
     double         setting;          //!< current setting
+	double         pastSetting;
     double         quality;          //!< avg. quality concen. (mass/ft3)
+	double         inertialTerm;     // Yeni
 };
 
 #endif
