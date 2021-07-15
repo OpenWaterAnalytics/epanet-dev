@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -16,9 +16,14 @@
 #include "network.h"
 #include "Elements/node.h"
 #include "Elements/link.h"
+#include "Elements/valve.h"
+#include "Elements/node.h"
+#include "Core/hydengine.h"
+#include "Solvers/rwcggasolver.h"
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 using namespace std;
 
 void   findNodeOutflows(double lamda, double dH[], double xQ[], Network* nw);
@@ -36,7 +41,9 @@ double  HydBalance::evaluate(
             double dH[],   // change in nodal heads
             double dQ[],   // change in link flows
             double xQ[],   // nodal inflow minus outflow
-            Network* nw)   // network being analyzed
+            Network* nw,   // network being analyzed
+			int currentTime, 
+			double tstep)   
 {
     // ... initialize which elements have the maximum errors
     maxFlowErr = 0.0;
@@ -54,7 +61,7 @@ double  HydBalance::evaluate(
     // ... find the error norm in satisfying conservation of energy
     //     (updating xQ with internal link flows)
 
-    double norm = findHeadErrorNorm(lamda, dH, dQ, xQ, nw);
+    double norm = findHeadErrorNorm(lamda, dH, dQ, xQ, nw, currentTime, tstep);
 
     // ... update xQ with external outflows
 
@@ -78,7 +85,7 @@ double  HydBalance::evaluate(
 //  Find the error norm in satisfying the head loss equation across each link.
 
 double HydBalance::findHeadErrorNorm(
-        double lamda, double dH[], double dQ[], double xQ[], Network* nw)
+        double lamda, double dH[], double dQ[], double xQ[], Network* nw, int currentTime, double tstep)
 {
     double norm = 0.0;
     double count = 0.0;
@@ -89,11 +96,17 @@ double HydBalance::findHeadErrorNorm(
     int linkCount = nw->count(Element::LINK);
     for (int i = 0; i < linkCount; i++)
     {
+
         // ... identify link's end nodes
 
         Link* link = nw->link(i);
         int n1 = link->fromNode->index;
         int n2 = link->toNode->index;
+
+		if (link->status == Link::LINK_CLOSED)
+		{
+			int mmk = 32;
+		}
 
         // ... apply updated flow to end node flow balances
 
@@ -104,26 +117,43 @@ double HydBalance::findHeadErrorNorm(
 
         // ... update network's max. flow change
 
+		previousMaxFlowChange = maxFlowChange;
+
         double err = abs(flowChange);
         if ( err > maxFlowChange )
         {
             maxFlowChange = err;
             maxFlowChangeLink = i;
         }
-
+			
         // ... compute head loss and its gradient (head loss is saved
         // ... to link->hLoss and its gradient to link->hGrad)
 //*******************************************************************
         link->findHeadLoss(nw, flow);
 //*******************************************************************
+	    
+		double unsteadyTerm = 0;
 
-        // ... evaluate head loss error
+        // ... evaluate head loss error according to Steady and Unsteady Flow Conditions
+		
 
-        double h1 = link->fromNode->head + lamda * dH[n1];
-        double h2 = link->toNode->head + lamda * dH[n2];
+		if (currentTime == 0 || nw->option(Options::HYD_SOLVER) == "GGA" )
+		{
+			unsteadyTerm = 0;
+		}
+
+		else
+		{
+			unsteadyTerm = (link->inertialTerm) * (link->flow - link->pastFlow) / tstep;
+		}
+
+        h1 = link->fromNode->head + lamda * dH[n1];
+        h2 = link->toNode->head + lamda * dH[n2];
         if ( link->hGrad == 0.0 ) link->hLoss = h1 - h2;
-        err = h1 - h2 - link->hLoss;
-        if ( abs(err) > maxHeadErr )
+        //err = h1 - h2 - link->hLoss;
+		err = unsteadyTerm - h1 + h2 + link->hLoss;
+       
+		if ( abs(err) > maxHeadErr )
         {
             maxHeadErr = abs(err);
             maxHeadErrLink = i;
@@ -319,7 +349,14 @@ double findTotalFlowChange(double lamda, double dQ[], Network* nw)
 
     for ( int i = 0; i < nw->count(Element::LINK); i++ )
     {
+
         Link* link = nw->link(i);
+
+		if (link->status == Link::LINK_CLOSED)
+		{
+			int mmk = 32;
+		}
+
         dq = lamda * dQ[i];
         dqSum += abs(dq);
         qSum += abs(link->flow + dq);

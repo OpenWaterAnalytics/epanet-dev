@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -24,7 +24,15 @@ struct HydBalance
 {
     double    maxFlowErr;         //!< max. flow error (cfs)
     double    maxHeadErr;         //!< max. head loss error (ft)
+	double    h1ini;
+	double    h1;
+	double    h2ini;
+	double    h2;
+	double    phloss;
+	double    gHn;
+	double    previousMaxHeadErr; //!< previous max. head loss error (ft)
     double    maxFlowChange;      //!< max. flow change (cfs)
+	double    previousMaxFlowChange;  //!< previous max. flow change (cfs)
     double    totalFlowChange;    //!< (summed flow changes) / (summed flows)
 
     int       maxHeadErrLink;     //!< link with max. head loss error
@@ -32,9 +40,9 @@ struct HydBalance
     int       maxFlowChangeLink;  //!< link with max. flow change
 
     double    evaluate(
-                  double lamda, double dH[], double dQ[], double xQ[], Network* nw);
+                  double lamda, double dH[], double dQ[], double xQ[], Network* nw, int currentTime, double tstep);
     double    findHeadErrorNorm(
-                  double lamda, double dH[], double dQ[], double xQ[], Network* nw);
+		double lamda, double dH[], double dQ[], double xQ[], Network* nw, int currentTime, double tstep);
     double    findFlowErrorNorm(double xQ[], Network* nw);
 };
 

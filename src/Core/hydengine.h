@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -43,6 +43,7 @@ class HydEngine
 
     int    getElapsedTime() { return currentTime; }
     double getPeakKwatts()  { return peakKwatts;  }
+	int    currentTime;        //!< current simulation time (sec)
 
   private:
 
@@ -54,7 +55,7 @@ class HydEngine
     // Engine components
 
     Network*       network;            //!< network being analyzed
-    HydSolver*     hydSolver;          //!< steady state hydraulic solver
+    HydSolver*     hydSolver;          //!< steady state or rwc unsteady hydraulic solver
     MatrixSolver*  matrixSolver;       //!< sparse matrix solver
 //    HydFile*       hydFile;            //!< hydraulics file accessor
 
@@ -65,7 +66,7 @@ class HydEngine
     int            startTime;          //!< starting time of day (sec)
     int            rptTime;            //!< current reporting time (sec)
     int            hydStep;            //!< hydraulic time step (sec)
-    int            currentTime;        //!< current simulation time (sec)
+    
     int            timeOfDay;          //!< current time of day (sec)
     double         peakKwatts;         //!< peak energy usage (kwatts)
     std::string    timeStepReason;     //!< reason for taking next time step
@@ -75,6 +76,8 @@ class HydEngine
     void           initMatrixSolver();
 
     int            getTimeStep();
+	void           pastJunction();
+	void           pastLink();
     int            timeToPatternChange(int tstep);
     int            timeToActivateControl(int tstep);
     int            timeToCloseTank(int tstep);

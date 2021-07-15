@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -6,6 +6,7 @@
  */
 
 #include "valve.h"
+#include "pattern.h"
 #include "node.h"
 #include "curve.h"
 #include "Core/network.h"
@@ -16,7 +17,9 @@
 #include <algorithm>
 using namespace std;
 
-const char* Valve::ValveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV"};
+// A new valve type is introduced to EPANET. The name of the Valve is Closure Control Valve (CCV)
+
+const char* Valve::ValveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV", "CCV"}; 
 
 const double MIN_LOSS_COEFF = 0.1;     // default minor loss coefficient
 
@@ -28,6 +31,7 @@ Valve::Valve(string name_) :
     Link(name_),
     valveType(TCV),
     lossFactor(0.0),
+	settingPattern(nullptr),
     hasFixedStatus(false),
     elev(0.0)
 {
@@ -110,6 +114,11 @@ void Valve::setInitSetting(double s)
     hasFixedStatus = false;
 }
 
+void Valve::setLossFactor()
+{
+	lossFactor = 0.02517 * lossCoeff / pow(diameter, 4);
+}
+
 //-----------------------------------------------------------------------------
 
 //  Initialize a valve's state.
@@ -134,6 +143,14 @@ void Valve::setInitFlow()
     {
         flow = setting;
     }
+	else if (valveType == CCV)
+	{
+		if (setting == 0) flow = ZERO_FLOW;
+		else flow = PI * diameter * diameter / 4.0; 
+	} // */
+	pastFlow = 0;
+	pastHloss = 0;
+	pastSetting = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -178,6 +195,7 @@ double Valve::getSetting(Network* nw)
 void Valve::findHeadLoss(Network* nw, double q)
 {
     hLoss = 0.0;
+	
     hGrad = 0.0;
 
     // ... valve is temporarily closed (e.g., tries to drain an empty tank)
@@ -185,6 +203,8 @@ void Valve::findHeadLoss(Network* nw, double q)
     if ( status == TEMP_CLOSED)
     {
         HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+
+		inertialTerm = MIN_GRADIENT;
     }
 
     // ... valve has fixed status (OPEN or CLOSED)
@@ -194,18 +214,37 @@ void Valve::findHeadLoss(Network* nw, double q)
         if (status == LINK_CLOSED)
         {
             HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+			inertialTerm = MIN_GRADIENT;
         }
-        else if (status == LINK_OPEN) findOpenHeadLoss(q);
+		else if (status == LINK_OPEN)
+		{
+			findOpenHeadLoss(q);
+			inertialTerm = MIN_GRADIENT;
+		}	
     }
 
     // ... head loss for active valves depends on valve type
 
     else switch (valveType)
     {
-    case PBV: findPbvHeadLoss(q); break;
-    case TCV: findTcvHeadLoss(q); break;
-    case GPV: findGpvHeadLoss(nw, q); break;
-    case FCV: findFcvHeadLoss(q); break;
+	case PBV: findPbvHeadLoss(q); inertialTerm = MIN_GRADIENT; break;
+	case TCV: findTcvHeadLoss(q); inertialTerm = MIN_GRADIENT; break;
+	case CCV: 
+		if(setting == 0)
+		{
+			status = LINK_CLOSED;
+			HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+			inertialTerm = MIN_GRADIENT;
+		}
+		else if (setting != 0)
+		{
+			status = LINK_OPEN;
+			findCcvHeadLoss(nw, q); 
+			inertialTerm = 10.765 / (32.174 * PI * diameter * diameter); // Approximate value for valve inertial term
+		}
+		break;
+	case GPV: findGpvHeadLoss(nw, q); inertialTerm = MIN_GRADIENT; break;
+	case FCV: findFcvHeadLoss(q); inertialTerm = MIN_GRADIENT; break;
 
     // ... PRVs & PSVs without fixed status can be either
     //     OPEN, CLOSED, or ACTIVE.
@@ -214,8 +253,10 @@ void Valve::findHeadLoss(Network* nw, double q)
         if ( status == LINK_CLOSED )
         {
             HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+			inertialTerm = MIN_GRADIENT;
         }
         else if ( status == LINK_OPEN ) findOpenHeadLoss(q);
+		inertialTerm = MIN_GRADIENT;
         break;
     }
 }
@@ -284,6 +325,44 @@ void Valve::findTcvHeadLoss(double q)
 }
 
 //-----------------------------------------------------------------------------
+
+//  Find the head loss and its gradient for a closure control valve.
+
+void Valve::findCcvHeadLoss(Network* nw, double q)
+{
+	//... save open valve loss factor
+
+	double f = lossFactor;
+
+	if (nw->option(Options::VALVE_REP_TYPE) == "Toe")
+	{
+		double valve_conductance = 16.96; // ft^2.5 / s =   0.87 m^(2.5) / s 
+		double vc_square = valve_conductance * valve_conductance;
+		double Toe = setting; // Globe Valve
+		double Toe_Square = Toe * Toe;
+		lossFactor = 1 / (vc_square * Toe_Square); // (Nault and Karney, 2016) */
+	}
+
+	else if (nw->option(Options::VALVE_REP_TYPE) == "Cd")
+	{
+		double d2 = diameter * diameter;
+		double FullArea = (d2 * PI) / 4;           // Area of valve
+		//double Area = FullArea * (-0.3575 * pow(setting, 4) + 0.2766 * pow(setting, 3) - 0.2233 * pow(setting, 2) + 1.3056 * setting - 0.0005);
+		double FullArea2 = FullArea * FullArea;
+		double Cd = -1.1293 * pow(setting, 6) + 3.3823 * pow(setting, 5) - 3.443 * pow(setting, 4) + 0.5671 * pow(setting, 3) + 1.0371 * pow(setting, 2) - 0.0037 * setting; // Globe Valve according to Tullis (1989)
+		double Cd2 = Cd * Cd;
+		double g = 32.174; // gravitational acceleration
+		lossFactor = (1 / Cd2 - 1) * (1 / (2 * g * FullArea2)); // */
+	}
+	
+	// setting value is between 0 and 1
+
+	findOpenHeadLoss(q);
+	
+	// ... restore open valve loss factor
+
+	//lossFactor = f;
+}
 
 //  Find the head loss and its derivative for a general purpose valve.
 
@@ -431,21 +510,61 @@ int Valve::updatePsvStatus(double q, double h1, double h2)
 
 //  Change the setting of a valve.
 
-bool Valve::changeSetting(
-        double newSetting, bool makeChange, const string reason, ostream& msgLog)
+bool Valve::changeSetting(double newSetting, bool makeChange, const string reason, ostream& msgLog)
 {
-    if ( newSetting != setting )
-    {
-        if ( makeChange )
-        {
-            hasFixedStatus = false;
-            status = Link::LINK_OPEN;
-            msgLog << "\n    " << reason;
-            setting = newSetting;
-        }
-        return true;
-    }
-    return false;
+	if (valveType == CCV)
+	{
+		if (setting != newSetting)
+		{
+			if (status == Link::LINK_CLOSED && newSetting == 0.0)
+			{
+				setting = newSetting;
+				return false;
+			}
+
+			if (makeChange)
+			{
+				if (newSetting == 0.0)
+				{
+					status = Link::LINK_CLOSED;
+					flow = ZERO_FLOW;
+				}
+				else status = Link::LINK_OPEN;
+				msgLog << "\n    " << reason;
+				setting = newSetting;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	else
+	{
+		if (setting != newSetting)
+		{
+			if (status == Link::LINK_CLOSED) // && newSetting == 0.0)
+			{
+				setting = newSetting;
+				return false;
+			}
+
+			if (makeChange)
+			{
+				if (newSetting == 0.0)
+				{
+					status = Link::LINK_CLOSED;
+					flow = ZERO_FLOW;
+				}
+				else status = Link::LINK_OPEN;
+				msgLog << "\n    " << reason;
+				setting = newSetting;
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -487,4 +606,14 @@ void Valve::validateStatus(Network* nw, double qTol)
 
     default: break;
     }
+}
+
+void Valve::applyControlPattern(ostream& msgLog)
+{
+	if (settingPattern)
+	{
+		changeSetting(settingPattern->currentFactor(), true, "setting pattern", msgLog);
+
+		
+	}
 }

@@ -5,11 +5,11 @@
  *
  */
 
-//! \file ggasolver.h
-//! \brief Describes the GGASolver class.
+//! \file rwcggasolver.h
+//! \brief Describes the RWCGGASolver class.
 
-#ifndef GGASOLVER_H_
-#define GGASOLVER_H_
+#ifndef RWCGGASOLVER_H_
+#define RWCGGASOLVER_H_
 
 #include "Solvers/hydsolver.h"
 #include "Core/hydbalance.h"
@@ -18,16 +18,17 @@
 
 class HydSolver;
 
-//! \class GGASolver
-//! \brief A hydraulic solver based on Todini's Global Gradient Algorithm.
+//! \class RWCGGASolver
+//! \brief A hydraulic solver based on RWC Global Gradient Algorithm.
 
-class GGASolver : public HydSolver
+class RWCGGASolver : public HydSolver
 {
   public:
 
-    GGASolver(Network* nw, MatrixSolver* ms);
-    ~GGASolver();
+    RWCGGASolver(Network* nw, MatrixSolver* ms);
+    ~RWCGGASolver();
     int solve(double tstep, int& trials, int currentTime);
+	double     tstep;             // time step (sec)
 
   private:
 
@@ -43,8 +44,13 @@ class GGASolver : public HydSolver
     double     flowErrLimit;      // allowable flow error (cfs)
     double     flowChangeLimit;   // allowable flow change (cfs)
     double     flowRatioLimit;    // allowable total flow change / total flow
-    double     tstep;             // time step (sec)
+    
     double     theta;             // time weighting constant
+	double     kappa;             // temporal discretization parameter
+	double     epsilon;           // convergence parameter
+	double     dhmaxpast;
+	double     maxHeadErrPast;
+	double     maxHeadError;
 	double     minErrorNorm;
 	double     dl;
 
@@ -63,6 +69,8 @@ class GGASolver : public HydSolver
     void   setLinkCoeffs();
     void   setNodeCoeffs();
     void   setValveCoeffs();
+	void   setInertialTerm();
+
 
     // Functions that update the hydraulic solution
     int    findHeadChanges();
@@ -72,7 +80,7 @@ class GGASolver : public HydSolver
 
     // Functions that check for convergence
     void   setConvergenceLimits();
-	double findErrorNorm(double lamda, int currentTime, double tstep);
+    double findErrorNorm(double lamda, int currentTime, double tstep);
     bool   hasConverged();
     bool   linksChangedStatus();
     void   reportTrial(int trials, double lamda);

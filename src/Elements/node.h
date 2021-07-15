@@ -1,4 +1,4 @@
-/* EPANET 3
+﻿/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -69,6 +69,12 @@ class Node: public Element
     // Computed Variables
     bool           fixedGrade;    //!< fixed grade status
     double         head;          //!< hydraulic head (ft)
+	double         h1ini;         //!< hydraulic head of upstream node in the initial moment of iteration
+	double         h2ini;         //!< hydraulic head of downstream node in the initial moment of iteration
+	//double         h1;
+	//double         h2;
+	double         pastHead;      //!< Hydraulic Head in previous timestep
+	double         ph;            //!< synonym of past head 
     double         qGrad;         //!< gradient of outflow w.r.t. head (cfs/ft)
     double         fullDemand;    //!< full demand required (cfs)
     double         actualDemand;  //!< actual demand delivered (cfs)

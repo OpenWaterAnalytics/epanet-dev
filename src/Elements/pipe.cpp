@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -99,9 +99,16 @@ void Pipe::setInitFlow()
 {
     // ... flow at velocity of 1 ft/s
     flow = PI * diameter * diameter / 4.0;
+	pastFlow = 0;
+	pastHloss = 0;
 }
 
 //-----------------------------------------------------------------------------
+
+void Pipe::setLossFactor()
+{
+	lossFactor = 0.02517 * lossCoeff / pow(diameter, 4);
+}
 
 double Pipe::getVelocity()
 {
@@ -131,13 +138,16 @@ void Pipe::findHeadLoss(Network* nw, double q)
     if ( status == LINK_CLOSED || status == TEMP_CLOSED )
     {
         HeadLossModel::findClosedHeadLoss(q, hLoss, hGrad);
+		inertialTerm = MIN_GRADIENT;
     }
     else
     {
         nw->headLossModel->findHeadLoss(this, q, hLoss, hGrad);
         if ( hasCheckValve ) HeadLossModel::addCVHeadLoss(q, hLoss, hGrad);
+		inertialTerm = (length * 4) / (32.174 * PI * diameter * diameter); // Pipe Inertial Term
     }
 }
+
 
 //-----------------------------------------------------------------------------
 

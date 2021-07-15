@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -48,6 +48,7 @@ class Options
         LEAKAGE_MODEL,         //!< Name of pipe leakage model used
         HYD_SOLVER,            //!< Name of hydraulic solver method
         STEP_SIZING,           //!< Name of Newton step size method
+		VALVE_REP_TYPE,        //!< Name of Valve representation type
         MATRIX_SOLVER,         //!< Name of sparse matrix eqn. solver
         DEMAND_PATTERN_NAME,   //!< Name of global demand pattern
 
@@ -106,6 +107,7 @@ class Options
         FLOW_TOLERANCE,        //!< Convergence tolerance for flow balance
         FLOW_CHANGE_LIMIT,     //!< Max. flow change for convergence
         TIME_WEIGHT,           //!< Time weighting for variable head tanks
+		TEMP_DISC_PARA,        //!< Temporal Discretization Parameter
 
         // Water quality options
         MOLEC_DIFFUSIVITY,     //!< Chemical's molecular diffusivity (ft2/sec)
