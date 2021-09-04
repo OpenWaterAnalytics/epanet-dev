@@ -228,10 +228,6 @@ void NodeParser::parseTankReact(Node* node, vector<string>& tokenList)
     {
         throw InputError(InputError::INVALID_NUMBER, tokens[1]);
     }
-
-    // ... convert coefficient to 1/sec
-
-    tank->bulkCoeff /= 86400;
 }
 
 //-----------------------------------------------------------------------------
