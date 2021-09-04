@@ -224,7 +224,7 @@ void NodeParser::parseTankReact(Node* node, vector<string>& tokenList)
 
     // ... read reaction coefficient in 1/days
 
-    if ( !Utilities::parseNumber(tokens[1], tank->bulkCoeff) )
+    if ( !Utilities::parseNumber(tokens[2], tank->bulkCoeff) )
     {
         throw InputError(InputError::INVALID_NUMBER, tokens[1]);
     }
