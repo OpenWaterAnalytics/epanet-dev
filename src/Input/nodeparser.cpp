@@ -226,7 +226,7 @@ void NodeParser::parseTankReact(Node* node, vector<string>& tokenList)
 
     if ( !Utilities::parseNumber(tokens[2], tank->bulkCoeff) )
     {
-        throw InputError(InputError::INVALID_NUMBER, tokens[1]);
+        throw InputError(InputError::INVALID_NUMBER, tokens[2]);
     }
 }
 
