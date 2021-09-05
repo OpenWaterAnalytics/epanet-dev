@@ -60,6 +60,7 @@ ChemModel::ChemModel() : QualModel(CHEM)
     wallOrder = 1.0;        // pipe wall reaction order
     pipeUcf = 1.0;          // volume conversion factor for pipes
     tankUcf = 1.0;          // volume conversion factor for tanks
+    radiusUcf = 1.0;        // hydraulic radius conversion factor for pipes
     cLimit = 0.001;         // min/max concentration limit (mass/ft3)
 }
 
@@ -79,6 +80,8 @@ void ChemModel::init(Network* nw)
     // volume conversion factors for reaction rate expressions
     pipeUcf = pow(LperFT3, (1.0 - pipeOrder));
     tankUcf = pow(LperFT3, (1.0 - tankOrder));
+
+    radiusUcf = nw->ucf(Units::LENGTH);
 
     // save diffusuivity, viscosity & Schmidt number
     diffus = nw->option(Options::MOLEC_DIFFUSIVITY);
@@ -236,7 +239,7 @@ double ChemModel::findWallRate(double kw, double d, double order, double c)
     if ( massTransCoeff == 0.0 )
     {
         if (order == 0.0) c = 1.0;
-        return c * kw / rh;
+        return c * kw / rh / radiusUcf;
     }
 
     // ... otherwise rate is combination of wall & mass transfer coeff.
@@ -257,6 +260,7 @@ double ChemModel::findWallRate(double kw, double d, double order, double c)
         else
         {
             double kf = massTransCoeff;
+            kw /= radiusUcf;
             return c * kw * kf / (kf + abs(kw)) / rh;
         }
     }
