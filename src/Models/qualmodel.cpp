@@ -60,7 +60,7 @@ ChemModel::ChemModel() : QualModel(CHEM)
     wallOrder = 1.0;        // pipe wall reaction order
     pipeUcf = 1.0;          // volume conversion factor for pipes
     tankUcf = 1.0;          // volume conversion factor for tanks
-    radiusUcf = 1.0;        // hydraulic radius conversion factor for pipes
+    wallUcf = 1.0;          // wall reaction coefficient conversion factor for pipes
     cLimit = 0.001;         // min/max concentration limit (mass/ft3)
 }
 
@@ -81,7 +81,12 @@ void ChemModel::init(Network* nw)
     pipeUcf = pow(LperFT3, (1.0 - pipeOrder));
     tankUcf = pow(LperFT3, (1.0 - tankOrder));
 
-    radiusUcf = nw->ucf(Units::LENGTH);
+    // wall reaction coefficient conversion
+    double ucf = nw->ucf(Units::LENGTH);
+    if (wallOrder == 0)
+        wallUcf = ucf * ucf;
+    else
+        wallUcf = 1.0 / ucf;
 
     // save diffusuivity, viscosity & Schmidt number
     diffus = nw->option(Options::MOLEC_DIFFUSIVITY);
@@ -166,7 +171,7 @@ double ChemModel::pipeReact(Pipe* pipe, double c, double tstep)
     double kb = pipe->bulkCoeff / SECperDAY;
     if ( kb != 0.0 ) dCdT = findBulkRate(kb, pipeOrder, c) * pipeUcf;
 
-    double kw = pipe->wallCoeff / SECperDAY;
+    double kw = pipe->wallCoeff / SECperDAY * wallUcf;
     if ( kw != 0.0 ) dCdT += findWallRate(kw, pipe->diameter, wallOrder, c);
 
     c = c + dCdT * tstep;
@@ -239,7 +244,7 @@ double ChemModel::findWallRate(double kw, double d, double order, double c)
     if ( massTransCoeff == 0.0 )
     {
         if (order == 0.0) c = 1.0;
-        return c * kw / rh / radiusUcf;
+        return c * kw / rh;
     }
 
     // ... otherwise rate is combination of wall & mass transfer coeff.
@@ -260,7 +265,6 @@ double ChemModel::findWallRate(double kw, double d, double order, double c)
         else
         {
             double kf = massTransCoeff;
-            kw /= radiusUcf;
             return c * kw * kf / (kf + abs(kw)) / rh;
         }
     }
