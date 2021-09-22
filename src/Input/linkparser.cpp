@@ -201,10 +201,10 @@ void LinkParser::parseReaction(Link* link, int type, vector<string>& tokenList)
         throw InputError(InputError::INVALID_NUMBER, tokens[1]);
     }
 
-    // ... save reaction coeff. converted to 1/sec
+    // ... save reaction coeff.
 
-    if      (type == Link::BULK) pipe->bulkCoeff = x / SECperDAY;
-    else if (type == Link::WALL) pipe->wallCoeff = x / SECperDAY;
+    if      (type == Link::BULK) pipe->bulkCoeff = x;
+    else if (type == Link::WALL) pipe->wallCoeff = x;
 }
 
 //-----------------------------------------------------------------------------

@@ -60,6 +60,7 @@ ChemModel::ChemModel() : QualModel(CHEM)
     wallOrder = 1.0;        // pipe wall reaction order
     pipeUcf = 1.0;          // volume conversion factor for pipes
     tankUcf = 1.0;          // volume conversion factor for tanks
+    wallUcf = 1.0;          // wall reaction coefficient conversion factor for pipes
     cLimit = 0.001;         // min/max concentration limit (mass/ft3)
 }
 
@@ -79,6 +80,13 @@ void ChemModel::init(Network* nw)
     // volume conversion factors for reaction rate expressions
     pipeUcf = pow(LperFT3, (1.0 - pipeOrder));
     tankUcf = pow(LperFT3, (1.0 - tankOrder));
+
+    // wall reaction coefficient conversion
+    double ucf = nw->ucf(Units::LENGTH);
+    if (wallOrder == 0)
+        wallUcf = ucf * ucf;
+    else
+        wallUcf = 1.0 / ucf;
 
     // save diffusuivity, viscosity & Schmidt number
     diffus = nw->option(Options::MOLEC_DIFFUSIVITY);
@@ -163,7 +171,7 @@ double ChemModel::pipeReact(Pipe* pipe, double c, double tstep)
     double kb = pipe->bulkCoeff / SECperDAY;
     if ( kb != 0.0 ) dCdT = findBulkRate(kb, pipeOrder, c) * pipeUcf;
 
-    double kw = pipe->wallCoeff / SECperDAY;
+    double kw = pipe->wallCoeff / SECperDAY * wallUcf;
     if ( kw != 0.0 ) dCdT += findWallRate(kw, pipe->diameter, wallOrder, c);
 
     c = c + dCdT * tstep;

@@ -224,14 +224,10 @@ void NodeParser::parseTankReact(Node* node, vector<string>& tokenList)
 
     // ... read reaction coefficient in 1/days
 
-    if ( !Utilities::parseNumber(tokens[1], tank->bulkCoeff) )
+    if ( !Utilities::parseNumber(tokens[2], tank->bulkCoeff) )
     {
-        throw InputError(InputError::INVALID_NUMBER, tokens[1]);
+        throw InputError(InputError::INVALID_NUMBER, tokens[2]);
     }
-
-    // ... convert coefficient to 1/sec
-
-    tank->bulkCoeff /= 86400;
 }
 
 //-----------------------------------------------------------------------------
