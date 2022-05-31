@@ -480,9 +480,8 @@ void OptionParser::parseQualOption(const string& s2, const string& s3,
         network->options.setOption(Options::TRACE_NODE_NAME, s3);
     }
 
-    if (network->option(Options::QUAL_TYPE) == Options::CHEM)
+    if (network->option(Options::QUAL_TYPE) == Options::CHEM && !s3.empty())
     {
-        if (s3.empty()) throw InputError(InputError::INVALID_KEYWORD, s3);
         string s3U = Utilities::upperCase(s3);
         if (s3U.compare("MG/L") == 0)
             network->options.setOption(Options::QUAL_UNITS, Options::MGL);
