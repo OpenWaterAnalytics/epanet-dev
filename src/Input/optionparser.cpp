@@ -471,25 +471,24 @@ void OptionParser::parseQualOption(const string& s2, const string& s3,
         network->options.setOption(Options::QUAL_UNITS, Options::MGL);
     }
 
-    if ( !s3.empty() )
+    if (network->option(Options::QUAL_TYPE) == Options::TRACE)
     {
-        if ( network->option(Options::QUAL_TYPE) == Options::TRACE )
-        {
-            int nodeIndex = network->indexOf(Element::NODE, s3);
-            if (i < 0) throw InputError(InputError::UNDEFINED_OBJECT, s3);
-            network->options.setOption(Options::TRACE_NODE, nodeIndex);
-            network->options.setOption(Options::TRACE_NODE_NAME, s3);
-        }
-        if ( network->option(Options::QUAL_TYPE) == Options::CHEM )
-        {
-            string s3U = Utilities::upperCase(s3);
-            if ( s3U.compare("MG/L") == 0 )
-                network->options.setOption(Options::QUAL_UNITS, Options::MGL);
-            else if ( s3U.compare("UG/L") == 0 )
-                network->options.setOption(Options::QUAL_UNITS, Options::UGL);
-            else throw InputError(InputError::INVALID_KEYWORD, s3);
-        }
-     }
+        if (s3.empty()) throw InputError(InputError::UNDEFINED_OBJECT, s3);
+        int nodeIndex = network->indexOf(Element::NODE, s3);
+        if (nodeIndex < 0) throw InputError(InputError::UNDEFINED_OBJECT, s3);
+        network->options.setOption(Options::TRACE_NODE, nodeIndex);
+        network->options.setOption(Options::TRACE_NODE_NAME, s3);
+    }
+
+    if (network->option(Options::QUAL_TYPE) == Options::CHEM && !s3.empty())
+    {
+        string s3U = Utilities::upperCase(s3);
+        if (s3U.compare("MG/L") == 0)
+            network->options.setOption(Options::QUAL_UNITS, Options::MGL);
+        else if (s3U.compare("UG/L") == 0)
+            network->options.setOption(Options::QUAL_UNITS, Options::UGL);
+        else throw InputError(InputError::INVALID_KEYWORD, s3);
+    }
 }
 
 //-----------------------------------------------------------------------------
