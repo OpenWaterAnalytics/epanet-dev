@@ -46,10 +46,10 @@ void TankMixModel::init(Tank* tank, SegPool* segPool, double _cTol)
     vMixed = fracMixed * tank->maxVolume;
 
     // ... create a volume segment for the entire tank
-    lastSeg = nullptr;
     firstSeg = segPool->getSegment(tank->volume, cTank);
     if ( firstSeg == nullptr )
         throw SystemError(SystemError::OUT_OF_MEMORY);
+    lastSeg = firstSeg;
 
     // ... create a second segment for the 2-compartment model
     if ( type == MIX2 )
