@@ -1,4 +1,4 @@
-/* EPANET 3.1
+﻿/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -6,19 +6,31 @@
  */
 
  ////////////////////////////////////////////////////////////////////////
- //  Implementation of the Global Gradient Algorithm hydraulic solver and Convergence Tracking Control Method  //
+ //  Implementation of the Rigid Water Column Global Gradient Algorithm hydraulic solver and Convergence Tracking Control Method   //
  ////////////////////////////////////////////////////////////////////////
 
 
-#include "ggasolver.h"
+
+
+#include "epanet3.h"
+#include "rwcggasolver.h"
 #include "matrixsolver.h"
 #include "Core/network.h"
 #include "Core/constants.h"
 #include "Elements/control.h"
 #include "Elements/junction.h"
+#include "Core/project.h"
+#include "Core/datamanager.h"
+#include "Core/constants.h"
+#include "Core/error.h"
+#include "Utilities/utilities.h"
+
 #include "Elements/tank.h"
 #include "Elements/link.h"
+#include "Core/hydengine.h"
+#include "Core/hydbalance.h"
 #include "Elements/valve.h"
+
 
 #include <cstring>
 #include <cmath>
@@ -26,6 +38,9 @@
 #include <iostream>   //for debugging
 #include <iomanip>
 #include <algorithm>
+#include <string>
+
+
 using namespace std;
 
 static const string s_Trial          = "    Trial ";
@@ -55,7 +70,7 @@ enum StepSizing {FULL, RELAXATION, LINESEARCH, BRF, ARF};
 
 //  Constructor
 
-GGASolver::GGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
+RWCGGASolver::RWCGGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
 {
     nodeCount = network->count(Element::NODE);
     linkCount = network->count(Element::LINK);
@@ -74,16 +89,19 @@ GGASolver::GGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
     flowRatioLimit  = 0.0;
     tstep           = 0.0;
     theta           = 0.0;
+	kappa           = 0.0;
+	dhmaxpast       = 0.0;
+	maxHeadErrPast  = 0.0;
 
-    if (network->option(Options::STEP_SIZING) == "RELAXATION" )
-        stepSizing = RELAXATION;
-    else if (network->option(Options::STEP_SIZING) == "LINESEARCH" )
-        stepSizing = LINESEARCH;
+	if (network->option(Options::STEP_SIZING) == "RELAXATION")
+		stepSizing = RELAXATION;
+	else if (network->option(Options::STEP_SIZING) == "LINESEARCH")
+		stepSizing = LINESEARCH;
 	else if (network->option(Options::STEP_SIZING) == "BRF")
 		stepSizing = BRF;
 	else if (network->option(Options::STEP_SIZING) == "ARF")
 		stepSizing = ARF;
-    else stepSizing = FULL;
+	else stepSizing = FULL;
 
     errorNorm     = 0.0;
     oldErrorNorm  = 0.0;
@@ -93,18 +111,21 @@ GGASolver::GGASolver(Network* nw, MatrixSolver* ms) : HydSolver(nw, ms)
 
 //  Destructor
 
-GGASolver::~GGASolver()
+RWCGGASolver::~RWCGGASolver()
 {
     dH.clear();
     dQ.clear();
     xQ.clear();
 }
 
+std::ofstream dosyam("D:\\EPANET_3\\Networks\\RWC\\kappa.txt");
+
 //-----------------------------------------------------------------------------
 
 //  Solve network for heads and flows
 
-int GGASolver::solve(double tstep_, int& trials, int currentTime)
+int RWCGGASolver::solve(double tstep_, int& trials, int currentTime)
+
 {
     // ... initialize variables
 
@@ -123,11 +144,16 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
     theta = min(theta, 1.0);
     if ( theta > 0.0 ) theta = max(theta, 0.5);
 
+	dosyam << kappa << "\n"; // */
+
+	kappa = network->option(Options::TEMP_DISC_PARA);
+	kappa = min(kappa, 1.0);
+	if (kappa < 0) kappa = 0; // */
+
 	minErrorNorm = 1000000000;
 	dl = 1.0;
 
     // ... set values for convergence limits
-
     setConvergenceLimits();
 
     // ... perform Newton iterations
@@ -135,6 +161,11 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
     while ( trials <= trialsLimit )
     {
         // ... save current error norm
+		if (currentTime == 161)
+		{
+			dhmaxpast = 0;
+			maxHeadErrPast = 0;
+		}
 
         oldErrorNorm = errorNorm;
 
@@ -146,12 +177,14 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
 
         if ( statusChanged )
         {
-			oldErrorNorm = findErrorNorm(0.0, currentTime, tstep);
+            oldErrorNorm = findErrorNorm(0.0, currentTime, tstep);
             lamda = 1.0;
         }
         statusChanged = false;
+
 		dl = 1.000000000000000;
 
+		// ... find changes in heads and flows
 		int errorCode = findHeadChanges();
 		if (errorCode >= 0)
 		{
@@ -196,6 +229,8 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
 				}
 				findFlowChanges(); // */
 				int counter = 0;
+
+				// ... a while loop which is used to minimum error norm among various error norms
 				while (minErrorNorm >= oldErrorNorm)
 				{
 					dl *= 0.25;
@@ -222,31 +257,33 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
 		}
 
 		else if (stepSizing == BRF)
-		{
-			int counter = 0;
-			while (minErrorNorm >= oldErrorNorm)
 			{
-				dl *= 0.25;
-				if (dl < 0.001) break;
-				lamda = findStepSize(trials, currentTime);
-				updateSolution(lamda);
-				errorNorm = minErrorNorm; // */
+				int counter = 0; 
+
+				// ... a while loop which is used to minimum error norm among various error norms
+				while (minErrorNorm >= oldErrorNorm) 
+				{
+					dl *= 0.25;
+					if (dl < 0.001) break;
+					lamda = findStepSize(trials, currentTime);
+					updateSolution(lamda);
+					errorNorm = minErrorNorm; // */
+				}
+				if (reportTrials) reportTrial(trials, lamda);
+				converged = hasConverged();
+
+				// ... if close to convergence then check for any link status changes
+
+				if (converged) // || errorNorm < ErrorThreshold )
+				{
+					statusChanged = linksChangedStatus();
+				}
+
+				// ... check if the current solution can be accepted
+
+				if (converged && !statusChanged) break;
+				trials++;
 			}
-			if (reportTrials) reportTrial(trials, lamda);
-			converged = hasConverged();
-
-			// ... if close to convergence then check for any link status changes
-
-			if (converged) // || errorNorm < ErrorThreshold )
-			{
-				statusChanged = linksChangedStatus();
-			}
-
-			// ... check if the current solution can be accepted
-
-			if (converged && !statusChanged) break;
-			trials++;
-		}
 		else
 		{
 			lamda = findStepSize(trials, currentTime);
@@ -279,7 +316,7 @@ int GGASolver::solve(double tstep_, int& trials, int currentTime)
 
 //  Establish error limits for convergence of heads and flows
 
-void GGASolver::setConvergenceLimits()
+void RWCGGASolver::setConvergenceLimits()
 {
     // ... maximum trials
     trialsLimit = network->option(Options::MAX_TRIALS);
@@ -314,7 +351,7 @@ void GGASolver::setConvergenceLimits()
 
 //  Adjust fixed grade status of specific nodes.
 
-void GGASolver::setFixedGradeNodes()
+void RWCGGASolver::setFixedGradeNodes()
 {
     Node* node;
 
@@ -355,9 +392,9 @@ void GGASolver::setFixedGradeNodes()
 
 //  Find changes in nodal heads by solving a linearized system of equations.
 
-int GGASolver::findHeadChanges()
+int RWCGGASolver::findHeadChanges()
 {
-    // ... setup the coeff. matrix of the GGA linearized system
+    // ... setup the coeff. matrix of the RWCGGA linearized system
 
     setMatrixCoeffs();
 
@@ -365,7 +402,7 @@ int GGASolver::findHeadChanges()
 
     double *h = &dH[0];
 
-    // ... solve the linearized GGA system for new nodal heads
+    // ... solve the linearized RWCGGA system for new nodal heads
     //     (matrixSolver returns a negative integer if it runs successfully;
     //      otherwise it returns the index of the row that caused it to fail.)
 
@@ -389,79 +426,103 @@ int GGASolver::findHeadChanges()
 
 //  Find the changes in link flows resulting from a set of nodal head changes.
 
-void GGASolver::findFlowChanges()
+void RWCGGASolver::findFlowChanges()
 {
-    for (int i = 0; i < linkCount; i++)
-    {
-        // ... get link object and its end node indexes
+	for (int i = 0; i < linkCount; i++)
+	{
+		// ... get link object and its end node indexes
 
-        dQ[i] = 0.0;
-        Link* link = network->link(i);
-        int n1 = link->fromNode->index;
-        int n2 = link->toNode->index;
+		dQ[i] = 0.0;
+		Link* link = network->link(i);
+		int n1 = link->fromNode->index;
+		int n2 = link->toNode->index;
 
-        // ... flow change for pressure regulating valves
+		// ... flow change for pressure regulating valves
 
-        if ( link->hGrad == 0.0 )
-        {
-            if ( link->isPRV() ) dQ[i] = -xQ[n2] - link->flow;
-            if ( link->isPSV() ) dQ[i] = xQ[n1] - link->flow;
-            continue;
-        }
+		if (link->hGrad == 0.0)
+		{
+			if (link->isPRV()) dQ[i] = -xQ[n2] - link->flow;
+			if (link->isPSV()) dQ[i] = xQ[n1] - link->flow;
+			continue;
+		}
 
-        // ... apply GGA flow change formula:
+		if (tstep == 0) // || network->link->type() == Link::VALVE || network->link->type() == Link::PUMP)
+		{
 
-        double dh = (link->fromNode->head + dH[n1]) -
-                    (link->toNode->head + dH[n2]);
-        double dq = (link->hLoss - dh) / link->hGrad;
+			// ... apply GGA flow change formula:
 
-        // ... special case to prevent negative flow in constant HP pumps
+			double dh = (link->fromNode->head + dH[n1]) -
+				(link->toNode->head + dH[n2]);
+			double dq = (link->hLoss - dh) / link->hGrad;
 
-        if ( link->isHpPump() &&
-             link->status == Link::LINK_OPEN &&
-             dq > link->flow ) dq = link->flow / 2.0;
+			// ... special case to prevent negative flow in constant HP pumps
 
-        // ... save flow change
+			if (link->isHpPump() &&
+				link->status == Link::LINK_OPEN &&
+				dq > link->flow) dq = link->flow / 2.0;
 
-        dQ[i] = -dq;
-    }
+			// ... save flow change
+
+			dQ[i] = -dq;
+		}
+		else
+			{
+			// ... apply RWCGGA flow change formula:
+
+			double dh = (link->fromNode->head + dH[n1]) - (link->toNode->head + dH[n2]);
+			double dhpast = (link->fromNode->pastHead) - (link->toNode->pastHead);
+			double pastTerms = ((1 - kappa) / kappa) * (link->pastHloss - dhpast);
+			//double flows = (link->inertialTerm / (kappa * tstep)) * (link->flow - link->pastFlow);
+			double flows = (link->inertialTerm / (kappa * tstep)) * (link->pastFlow) + link->hGrad * link->flow;
+			double dq = -(dh - link->hLoss + flows - pastTerms) / (link->hGrad + (link->inertialTerm / (kappa * tstep)))+link->flow;
+
+			// ... special case to prevent negative flow in constant HP pumps
+
+			if (link->isHpPump() &&
+				link->status == Link::LINK_OPEN &&
+				dq > link->flow) dq = link->flow / 2.0;
+
+			// ... save flow change
+
+			dQ[i] = -dq;
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
 
 //  Find how much of the head and flow changes to apply to a new solution.
 
-double GGASolver::findStepSize(int trials, int currentTime)
+double RWCGGASolver::findStepSize(int trials, int currentTime)
 {
-    // ... find the new error norm at full step size
+	// ... find the new error norm at full step size
 
-    double lamda = 1.0;
+	double lamda = 1.0;
 	errorNorm = findErrorNorm(lamda, currentTime, tstep);
 
-    if ( stepSizing == RELAXATION && oldErrorNorm < ErrorThreshold )
-    {
-        lamda = 0.5;
+	if (stepSizing == RELAXATION && oldErrorNorm < ErrorThreshold)
+	{
+		lamda = 0.5;
 		double errorNorm2 = findErrorNorm(lamda, currentTime, tstep);
-        if ( errorNorm2 < errorNorm ) errorNorm = errorNorm2;
-        else
-        {
-            lamda = 1.0;
+		if (errorNorm2 < errorNorm) errorNorm = errorNorm2;
+		else
+		{
+			lamda = 1.0;
 			errorNorm = findErrorNorm(lamda, currentTime, tstep);
-        }
-    }
+		}
+	}
 
-    // ... if called for, implement a line search procedure
-    //     to find the best step size lamda to take
+	// ... if called for, implement a lamda search procedure
+	//     to find the best step size lamda to take
 
-	if (stepSizing == BRF || stepSizing == ARF)
+	if (stepSizing == ARF || stepSizing == BRF)
 	{
 		{
 			minErrorNorm = 0;
 			double testError = 1000000;
 			lambdaNumber = 1 / dl;
 			Lambda.resize(lambdaNumber, 0);
-
-
+		
 			memset(&Lambda[0], 0, lambdaNumber*sizeof(double));
 
 			for (int i = 0; i < lambdaNumber; i++)
@@ -476,9 +537,6 @@ double GGASolver::findStepSize(int trials, int currentTime)
 					return HydSolver::FAILED_ILL_CONDITIONED;
 				}
 				findFlowChanges();                  //*/
-
-				updateSolution(Lambda[i]);
-
 				errorNorm = findErrorNorm(Lambda[i], currentTime, tstep);
 
 				if (errorNorm < testError)
@@ -499,18 +557,19 @@ double GGASolver::findStepSize(int trials, int currentTime)
 
 //  Compute the error norm associated with a given step size.
 
-double GGASolver::findErrorNorm(double lamda, int currentTime, double tstep)
+double RWCGGASolver::findErrorNorm(double lamda, int currentTime, double tstep)
 {
+
     hLossEvalCount++;
     return hydBalance.evaluate(lamda, (double*)&dH[0], (double*)&dQ[0],
-		(double*)&xQ[0], network, currentTime, tstep);
+                                      (double*)&xQ[0], network, currentTime, tstep);
 }
 
 //-----------------------------------------------------------------------------
 
 //  Update heads and flows for a given step size.
 
-void GGASolver::updateSolution(double lamda)
+void RWCGGASolver::updateSolution(double lamda)
 {
     for (int i = 0; i < nodeCount; i++) network->node(i)->head += lamda * dH[i];
     for (int i = 0; i < linkCount; i++) network->link(i)->flow += lamda * dQ[i];
@@ -520,7 +579,7 @@ void GGASolver::updateSolution(double lamda)
 
 //  Check if current solution meets convergence limits
 
-bool GGASolver::hasConverged()
+bool RWCGGASolver::hasConverged()
 {
     return ( hydBalance.maxHeadErr < headErrLimit ) &&
            ( hydBalance.maxFlowErr < flowErrLimit ) &&
@@ -530,7 +589,7 @@ bool GGASolver::hasConverged()
 
 //-----------------------------------------------------------------------------
 
-void GGASolver::reportTrial(int trials, double lamda)
+void RWCGGASolver::reportTrial(int trials, double lamda)
 {
     network->msgLog << endl << endl << s_Trial << trials << ":";
     network->msgLog << endl << s_StepSize << lamda;
@@ -572,10 +631,11 @@ void GGASolver::reportTrial(int trials, double lamda)
 
 //-----------------------------------------------------------------------------
 
-//  Compute the coeffciient matrix of the linearized set of equations for heads.
+//  Compute the coefficient matrix of the linearized set of equations for heads.
 
-void GGASolver::setMatrixCoeffs()
+void RWCGGASolver::setMatrixCoeffs()
 {
+
     memset(&xQ[0], 0, nodeCount*sizeof(double));
     matrixSolver->reset();
     setLinkCoeffs();
@@ -585,9 +645,10 @@ void GGASolver::setMatrixCoeffs()
 
 //-----------------------------------------------------------------------------
 
+
 //  Compute matrix coefficients for link head loss gradients.
 
-void GGASolver::setLinkCoeffs()
+void RWCGGASolver::setLinkCoeffs()
 {
     for (int j = 0; j < linkCount; j++)
     {
@@ -612,45 +673,93 @@ void GGASolver::setLinkCoeffs()
         // ... a is contribution to coefficient matrix
         //     b is contribution to right hand side
 
-        double a = 1.0 / link->hGrad;
-        double b = a * link->hLoss;
+		if (tstep == 0) 
+		{
+			double a = 1.0 / link->hGrad;
+			double b = a * link->hLoss;
 
-        // ... update off-diagonal coeff. of matrix if both start and
-        //     end nodes are not fixed grade
+			// ... update off-diagonal coeff. of matrix if both start and
+			//     end nodes are not fixed grade
 
-        if ( !node1->fixedGrade && !node2->fixedGrade )
-        {
-            matrixSolver->addToOffDiag(j, -a);
-        }
+			if (!node1->fixedGrade && !node2->fixedGrade)
+			{
+				matrixSolver->addToOffDiag(j, -a);
+			}
 
-        // ... if start node has fixed grade, then apply a to r.h.s.
-        //     of that node's row;
+			// ... if start node has fixed grade, then apply a to r.h.s.
+			//     of that node's row;
 
-        if ( node1->fixedGrade )
-        {
-            matrixSolver->addToRhs(n2, a * node1->head);
-        }
+			if (node1->fixedGrade)
+			{
+				matrixSolver->addToRhs(n2, a * node1->head);
+			}
 
-        // ... otherwise add a to row's diagonal coeff. and
-        //     add b to its r.h.s.
+			// ... otherwise add a to row's diagonal coeff. and
+			//     add b to its r.h.s.
 
-        else
-        {
-            matrixSolver->addToDiag(n1, a);
-            matrixSolver->addToRhs(n1, b);
-        }
+			else
+			{
+				matrixSolver->addToDiag(n1, a);
+				matrixSolver->addToRhs(n1, b);
+			}
 
-        // ... do the same for the end node, except subtract b from r.h.s
+			// ... do the same for the end node, except subtract b from r.h.s
 
-        if ( node2->fixedGrade )
-        {
-            matrixSolver->addToRhs(n1, a * node2->head);
-        }
-        else
-        {
-            matrixSolver->addToDiag(n2, a);
-            matrixSolver->addToRhs(n2, -b);
-        }
+			if (node2->fixedGrade)
+			{
+				matrixSolver->addToRhs(n1, a * node2->head);
+			}
+			else
+			{
+				matrixSolver->addToDiag(n2, a);
+				matrixSolver->addToRhs(n2, -b);
+			}
+		}
+
+		else
+		{	
+			// a and b are upgraded according to RWC-GGA
+
+			double a = 1.0 / ((link->hGrad) + (link->inertialTerm / (kappa * tstep)));
+			double b = a * ((link->hLoss) + ((1 - kappa) / kappa) * (link->pastHloss - (node1->pastHead - node2->pastHead)) - (link->inertialTerm / (kappa * tstep)) * (link->pastFlow) - link->hGrad * link->flow) + link->flow;
+
+			// ... update off-diagonal coeff. of matrix if both start and
+			//     end nodes are not fixed grade
+
+			if (!node1->fixedGrade && !node2->fixedGrade)
+			{
+				matrixSolver->addToOffDiag(j, -a);
+			}
+
+			// ... if start node has fixed grade, then apply a to r.h.s.
+			//     of that node's row;
+
+			if (node1->fixedGrade)
+			{
+				matrixSolver->addToRhs(n2, a * node1->head);
+			}
+
+			// ... otherwise add a to row's diagonal coeff. and
+			//     add b to its r.h.s.
+
+			else
+			{
+				matrixSolver->addToDiag(n1, a);
+				matrixSolver->addToRhs(n1, b);
+			}
+
+			// ... do the same for the end node, except subtract b from r.h.s
+
+			if (node2->fixedGrade)
+			{
+				matrixSolver->addToRhs(n1, a * node2->head);
+			}
+			else
+			{
+				matrixSolver->addToDiag(n2, a);
+				matrixSolver->addToRhs(n2, -b);
+			}
+		}
     }
 }
 
@@ -658,7 +767,7 @@ void GGASolver::setLinkCoeffs()
 
 //  Compute matrix coefficients for dynamic tanks and external node outflows.
 
-void  GGASolver::setNodeCoeffs()
+void  RWCGGASolver::setNodeCoeffs()
 {
     for (int i = 0; i < nodeCount; i++)
     {
@@ -673,11 +782,25 @@ void  GGASolver::setNodeCoeffs()
             if ( node->type() == Node::TANK && theta != 0.0 )
             {
                 Tank* tank = static_cast<Tank*>(node);
-                double a = tank->area / (theta * tstep);
-                matrixSolver->addToDiag(i, a);
 
-                a = a * tank->pastHead + (1.0 - theta) * tank->pastOutflow / theta;
-                matrixSolver->addToRhs(i, a);
+				if (tank->head == tank->pastHead)
+				{
+					double a = tank->area / (theta * tstep);
+					matrixSolver->addToDiag(i, a);
+
+					a = a * tank->pastHead + (1.0 - theta) * tank->pastOutflow / theta;
+					matrixSolver->addToRhs(i, a); //  */
+				}
+				
+				else
+				{
+					double a = (tank->area + ((tank->area - tank->pastArea) /(tank->head - tank->pastHead)) * (tank->head)) / (theta * tstep);
+					matrixSolver->addToDiag(i, a);
+
+					double b = (tank->pastArea) * tank->pastHead / (theta * tstep) + (1.0 - theta) * tank->pastOutflow / theta;
+					double c = b + ((tank->area - tank->pastArea) / (tank->head - tank->pastHead)) * (tank->head) / (theta * tstep);
+					matrixSolver->addToRhs(i, c); //
+				} 
             }
 
             // ... for junctions, add effect of external outflows
@@ -708,7 +831,7 @@ void  GGASolver::setNodeCoeffs()
 
 //  Compute matrix coefficients for pressure regulating valves.
 
-void  GGASolver::setValveCoeffs()
+void  RWCGGASolver::setValveCoeffs()
 {
     for (Link* link : network->links)
     {
@@ -743,7 +866,7 @@ void  GGASolver::setValveCoeffs()
 
 //  Check if any links change status at the current trial solution.
 
-bool GGASolver::linksChangedStatus()
+bool RWCGGASolver::linksChangedStatus()
 {
     bool result = false;
     for (Link* link : network->links)

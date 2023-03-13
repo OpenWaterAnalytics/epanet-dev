@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -257,6 +257,12 @@ void ProjectWriter::writeValves()
                             link->convertSetting(network, link->initSetting);
                 fout << setw(12) << cf * link->initSetting << "\n";
             }
+			if (valve->settingPattern)
+			{
+				fout << setw(8) << "PATTERN";
+				fout << setw(16) << valve->settingPattern->name;
+			}
+			fout << "\n";
         }
     }
 }

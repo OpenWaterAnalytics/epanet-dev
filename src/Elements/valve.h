@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -16,6 +16,7 @@
 #include <string>
 
 class Network;
+class Pattern;
 
 //! \class Valve
 //! \brief A Link that controls flow or pressure.
@@ -32,7 +33,8 @@ class Valve: public Link
         FCV,               //!< flow control valve
         TCV,               //!< throttle control valve
         PBV,               //!< pressure breaker valve
-        GPV                //!< general purpose valve
+        GPV,                //!< general purpose valve
+		CCV                 //!< closure control valve  
     };
     static const char* ValveTypeWords[];
 
@@ -49,6 +51,7 @@ class Valve: public Link
     void        setInitFlow();
     void        setInitStatus(int s);
     void        setInitSetting(double s);
+	void		setLossFactor();
     void        initialize(bool initFlow);
 
     bool        isPRV();
@@ -65,6 +68,7 @@ class Valve: public Link
                               const std::string reason,
                               std::ostream& msgLog);
     void        validateStatus(Network* nw, double qTol);
+	bool	    makeChange;
 
     double      getVelocity();
     double      getRe(const double q, const double viscos);
@@ -73,6 +77,9 @@ class Valve: public Link
     // Properties
     ValveType   valveType;      //!< valve type
     double      lossFactor;     //!< minor loss factor
+	Pattern*    settingPattern; //!< Setting Pattern
+	void        applyControlPattern(std::ostream& msgLog);
+
 
   protected:
     void        findOpenHeadLoss(double q);
@@ -80,6 +87,7 @@ class Valve: public Link
     void        findTcvHeadLoss(double q);
     void        findGpvHeadLoss(Network* nw, double q);
     void        findFcvHeadLoss(double q);
+	void        findCcvHeadLoss(Network* nw, double q);
     int         updatePrvStatus(double q, double h1, double h2);
     int         updatePsvStatus(double q, double h1, double h2);
 
