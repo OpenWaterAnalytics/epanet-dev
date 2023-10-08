@@ -7,6 +7,7 @@
 
 #include "tank.h"
 #include "curve.h"
+#include "qualsource.h"
 #include "Core/network.h"
 #include "Core/constants.h"
 #include "Core/error.h"
@@ -107,6 +108,7 @@ void Tank::initialize(Network* nw)
     outflow = 0.0;
     pastOutflow = 0.0;
     quality = initQual;
+    if (qualSource) qualSource->quality = quality;
     updateArea();
     if ( volCurve ) minVolume = findVolume(minHead);
     else if ( minVolume == 0.0 ) minVolume = (minHead - elev) * area;
