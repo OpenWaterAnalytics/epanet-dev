@@ -7,6 +7,7 @@
 
 #include "junction.h"
 #include "emitter.h"
+#include "qualsource.h"
 #include "Core/network.h"
 #include "Core/constants.h"
 #include "Models/demandmodel.h"
@@ -82,6 +83,7 @@ void Junction::initialize(Network* nw)
 {
     head = elev + (pFull - pMin) / 2.0;;
     quality = initQual;
+    if (qualSource) qualSource->quality = quality;
     actualDemand = 0.0;
     outflow = 0.0;
     fixedGrade = false;

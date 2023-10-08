@@ -54,7 +54,7 @@ void QualSource::setStrength(Node* node)
 {
     strength = base;
     if ( pattern ) strength *= pattern->currentFactor();
-    if ( type == MASS ) strength *= 60.0;         // mass/min -> mass/sec
+    if ( type == MASS ) strength /= 60.0;         // mass/min -> mass/sec
     else                strength /= FT3perL;      // mass/L -> mass/ft3
 }
 
@@ -64,7 +64,15 @@ double QualSource::getQuality(Node* node)
 {
     // ... no source contribution if no flow out of node
     quality = node->quality;
-    if ( outflow == 0.0 ) return quality;
+    if (abs(outflow) <= ZERO_FLOW)
+    {
+        if (node->type() == Node::JUNCTION && node->outflow < 0.0)
+        {
+            if (type == MASS) quality = strength * 60.0;    // mass/sec -> mass/min
+            else              quality = strength;
+        }
+        return quality;
+    }
 
     switch (type)
     {
