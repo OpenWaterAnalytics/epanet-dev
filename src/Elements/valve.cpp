@@ -462,6 +462,7 @@ bool Valve::changeStatus(
             msgLog << "\n    " << reason;
             status = newStatus;
             hasFixedStatus = true;
+            setting = 0.0; // reset setting when status is fixed
             if ( status == LINK_CLOSED ) flow = ZERO_FLOW;
         }
         return true;
