@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -21,6 +21,8 @@ Reservoir::Reservoir(string name_):
 {
     fullDemand = 0.0;
     fixedGrade = true;
+	pastHead = head;
+	ph = head;
 }
 
 Reservoir::~Reservoir() {}

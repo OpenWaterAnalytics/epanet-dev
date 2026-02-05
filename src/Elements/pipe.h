@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -37,6 +37,7 @@ class Pipe: public Link
     void        setInitStatus(int s);
     void        setInitSetting(double s);
     void        setResistance(Network* nw);
+	void		setLossFactor();
 
     double      getRe(const double q, const double viscos);
     double      getResistance() {return resistance;}

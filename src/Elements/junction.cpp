@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -16,13 +16,17 @@ using namespace std;
 //-----------------------------------------------------------------------------
 //    Junction Constructor
 //-----------------------------------------------------------------------------
-Junction::Junction(string name_):
-    Node(name_),
-    pMin(MISSING),
-    pFull(MISSING),
-    emitter(nullptr)
+Junction::Junction(string name_) :
+Node(name_),
+pMin(MISSING),
+pFull(MISSING),
+emitter(nullptr)
+//pastHead(0.0),
+//ph(0.0)
 {
+
 }
+
 
 
 //-----------------------------------------------------------------------------
@@ -81,6 +85,8 @@ void Junction::convertUnits(Network* nw)
 void Junction::initialize(Network* nw)
 {
     head = elev + (pFull - pMin) / 2.0;;
+	//pastHead = elev + (pFull - pMin) / 2.0; // Head value on the previous timestep
+	ph = elev + (pFull - pMin) / 2.0;       // synonym of past head
     quality = initQual;
     actualDemand = 0.0;
     outflow = 0.0;

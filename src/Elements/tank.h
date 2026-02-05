@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -67,6 +67,7 @@ class Tank: public Node
     double ucfLength;              //!< units conversion factor for length
     double pastHead;               //!< water elev. in previous time period (ft)
     double pastVolume;             //!< volume in previous time period (ft3)
+	double pastArea;               //!< area in previous time period (ft2)
     double pastOutflow;            //!< outflow in previous time period (cfs)
 };
 

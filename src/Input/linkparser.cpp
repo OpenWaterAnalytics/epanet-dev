@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -29,7 +29,7 @@ static const char* w_Effic   = "EFFIC";
 static const char* w_OPEN    = "OPEN";
 static const char* w_CLOSED  = "CLOSED";
 static const char* w_CV      = "CV";
-static const char* valveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV", 0};
+static const char* valveTypeWords[] = {"PRV", "PSV", "FCV", "TCV", "PBV", "GPV", "CCV", 0};
 
 //-----------------------------------------------------------------------------
 //  Local functions
@@ -360,60 +360,74 @@ void parsePumpData(Pump* pump, Network* nw, vector<string>& tokenList)
 
 void parseValveData(Valve* valve, Network* network, vector<string>& tokenList)
 {
-    // Contents of tokenList are:
-    // 0 - valve ID
-    // 1 - upstream node ID
-    // 2 - downstream node ID
-    // 3 - diameter
-    // 4 - valve type
-    // 5 - valve setting
-    // 6 - minor loss coeff. (optional)
+	// Contents of tokenList are:
+	// 0 - valve ID
+	// 1 - upstream node ID
+	// 2 - downstream node ID
+	// 3 - diameter
+	// 4 - valve type
+	// 5 - valve setting
+	// 6 - minor loss coeff. (optional) 
+	// 7 - valve setting pattern (optional)
 
-    // ... check for enough input tokens
+	// ... check for enough input tokens
 
-    if ( tokenList.size() < 6 ) throw InputError(InputError::TOO_FEW_ITEMS, "");
-    string* tokens = &tokenList[0];
+	if (tokenList.size() < 6) throw InputError(InputError::TOO_FEW_ITEMS, "");
+	string* tokens = &tokenList[0];
 
-    // ... read diameter
+	// ... read diameter
 
-    if ( !Utilities::parseNumber(tokens[3], valve->diameter)||
-         valve->diameter <= 0.0 )
-    {
-        throw InputError(InputError::INVALID_NUMBER, tokens[3]);
-    }
+	if (!Utilities::parseNumber(tokens[3], valve->diameter) ||
+		valve->diameter <= 0.0)
+	{
+		throw InputError(InputError::INVALID_NUMBER, tokens[3]);
+	}
 
-    // ... read valve type
+	// ... read valve type
 
-    int vType = Utilities::findMatch(tokens[4], valveTypeWords);
-    if ( vType < 0 ) throw InputError(InputError::INVALID_KEYWORD, tokens[4]);
-    valve->valveType = (Valve::ValveType)vType;
+	int vType = Utilities::findMatch(tokens[4], valveTypeWords);
+	if (vType < 0) throw InputError(InputError::INVALID_KEYWORD, tokens[4]);
+	valve->valveType = (Valve::ValveType)vType;
 
-    // ... read index of head loss curve for General Purpose Valve
+	// ... read index of head loss curve for General Purpose Valve
 
-    if ( valve->valveType == Valve::GPV )
-    {
-        int c = network->indexOf(Element::CURVE, tokens[5]);
-        if ( c < 0 ) throw InputError(InputError::UNDEFINED_OBJECT, tokens[5]);
-        valve->initSetting = c;
-    }
+	if (valve->valveType == Valve::GPV)
+	{
+		int c = network->indexOf(Element::CURVE, tokens[5]);
+		if (c < 0) throw InputError(InputError::UNDEFINED_OBJECT, tokens[5]);
+		valve->initSetting = c;
+	}
 
-    // ... read numerical setting for other types of valves
-    else
-    {
-        if ( !Utilities::parseNumber(tokens[5], valve->initSetting) )
-        {
-            throw InputError(InputError::INVALID_NUMBER, tokens[5]);
-        }
-    }
+	// ... read numerical setting for other types of valves
+	else
+	{
+		if (!Utilities::parseNumber(tokens[5], valve->initSetting))
+		{
+			throw InputError(InputError::INVALID_NUMBER, tokens[5]);
+		}
+	}
 
-    // ... read optional minor loss coeff.
+	// ... read optional minor loss coeff.
 
-    if ( tokenList.size() > 6 )
-    {
-        if ( !Utilities::parseNumber(tokens[6], valve->lossCoeff) ||
-             valve->lossCoeff < 0.0 )
-        {
-            throw InputError(InputError::INVALID_NUMBER, tokens[6]);
-        }
-    }
+	if (tokenList.size() > 6)
+	{
+		if (!Utilities::parseNumber(tokens[6], valve->lossCoeff) ||
+			valve->lossCoeff < 0.0)
+		{
+			throw InputError(InputError::INVALID_NUMBER, tokens[6]);
+		}
+	}
+
+
+	// read optional setting pattern
+
+	if (tokenList.size() > 7 && tokens[7] != "*")
+	{
+		valve->settingPattern = network->pattern(tokens[7]);
+		if (!valve->settingPattern)
+		{
+			throw InputError(InputError::UNDEFINED_OBJECT, tokens[2]);
+		}
+	}
 }
+

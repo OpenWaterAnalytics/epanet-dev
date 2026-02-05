@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -28,6 +28,10 @@ Node::Node(string name_) :
     qualSource(nullptr),
     fixedGrade(false),
     head(0.0),
+	h1ini(0.0),
+	h2ini(0.0),
+	pastHead(0.0),
+	ph(0.0),
     qGrad(0.0),
     fullDemand(0.0),
     actualDemand(0.0),
@@ -69,6 +73,10 @@ Node* Node::factory(int type_, string name_, MemPool* memPool)
 void Node::initialize(Network* nw)
 {
     head = elev;
+	pastHead = elev;   // head on the previous timestep
+	ph = elev;         // synonym of the past head
+	h1ini = elev;
+	h2ini = elev;
     quality = initQual;
     if ( qualSource ) qualSource->quality = quality;
     actualDemand = 0.0;

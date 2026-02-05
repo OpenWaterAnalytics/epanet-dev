@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Distributed under the MIT License (see the LICENSE file for details).
@@ -6,7 +6,7 @@
  */
 
 ///////////////////////////////////////////////
-// Implementation of EPANET 3's API library  //
+// Implementation of EPANET 3.1's API library  //
 ///////////////'''''///////////////////////////
 
 // TO DO:
@@ -26,6 +26,7 @@
 #include <string>
 
 using namespace Epanet;
+using namespace std;
 
 #define project(p) ((Project *)p)
 
@@ -49,9 +50,26 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
     Project p;
     int err = 0;
 
+	// Output files in text format, and variables which are existing in output file 
+
+	//std::ofstream myfile("D:\\EPANET_3\\Networks\\RWC\\Onizuka\\Onizuka1986CCV.txt");
+	//std::ofstream myfile("D:\\EPANET_3\\Networks\\RWC\\Nault2016\\Nault2016CCV.txt");
+	std::ofstream myfile("D:\\EPANET_3\\Networks\\RWC\\Nault2018\\Nault2018.txt");
+	//std::ofstream myfile("D:\\EPANET_3\\Networks\\RWC\\Nault2018EPA3-EPS.txt");
+	
+	int IndexP5, IndexP8, IndexT1, IndexJ2;
+	double f5, f8, h1, h2;          //Onizuka (1986)
+	
+	int IndexJ7, IndexJ18, IndexJ25, IndexP34, IndexPS2P3, IndexP2, IndexP25, IndexR1, IndexR2, IndexR3;
+	double h7, h18, h25, f34, fPS2P3, f2, f25; // Nault and Karney (2016)   
+
+	int IndexJ70, IndexJ105, IndexP447, IndexP1364;
+	double h70, h105, f447, f1364; // Nault and Karney(2018)
+
     // ... initialize execution time clock
     clock_t start_t = clock();
 
+	
     for (;;)
     {
         // ... open the command line files and load network data
@@ -66,6 +84,42 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
         if ( (err = p.initSolver(false)) ) break;
         std::cout << "\n    ";
 
+		/*int ErrorP5 = EN_getLinkIndex("P5", &IndexP5, p.getNetwork());
+		int ErrorP8 = EN_getLinkIndex("P8", &IndexP8, p.getNetwork());
+		int ErrorT1 = EN_getNodeIndex("T1", &IndexT1, p.getNetwork());
+		int ErrorJ2 = EN_getNodeIndex("J2", &IndexJ2, p.getNetwork());
+
+		double ErrorValP5 = EN_getLinkValue(IndexP5, EN_FLOW, &f5, p.getNetwork());
+		double ErrorValP8 = EN_getLinkValue(IndexP8, EN_FLOW, &f8, p.getNetwork());
+		double ErrorValT1 = EN_getNodeValue(IndexT1, EN_HEAD, &h1, p.getNetwork());
+		double ErrorValJ2 = EN_getNodeValue(IndexJ2, EN_HEAD, &h2, p.getNetwork()); //  Onizuka (1986) */
+
+		/*int ErrorJ7 = EN_getNodeIndex("J7", &IndexJ7, p.getNetwork());
+		int ErrorJ18 = EN_getNodeIndex("J18", &IndexJ18, p.getNetwork());
+		int ErrorJ25 = EN_getNodeIndex("J25", &IndexJ25, p.getNetwork());
+		int ErrorP34 = EN_getLinkIndex("P34", &IndexP34, p.getNetwork());
+		int ErrorPS2P3 = EN_getLinkIndex("PS2-P3", &IndexPS2P3, p.getNetwork());
+		int ErrorP2 = EN_getLinkIndex("P2", &IndexP2, p.getNetwork());
+		int ErrorP25 = EN_getLinkIndex("P25", &IndexP25, p.getNetwork());
+
+		double ErrorValJ7 = EN_getNodeValue(IndexJ7, EN_HEAD, &h7, p.getNetwork());
+		double ErrorValJ18 = EN_getNodeValue(IndexJ18, EN_HEAD, &h18, p.getNetwork());
+		double ErrorValJ25 = EN_getNodeValue(IndexJ25, EN_HEAD, &h25, p.getNetwork());
+		double ErrorValP34 = EN_getLinkValue(IndexP34, EN_FLOW, &f34, p.getNetwork());
+		double ErrorValPS2P3 = EN_getLinkValue(IndexPS2P3, EN_FLOW, &fPS2P3, p.getNetwork());
+		double ErrorValP2 = EN_getLinkValue(IndexP2, EN_FLOW, &f2, p.getNetwork());
+		double ErrorValP25 = EN_getLinkValue(IndexP25, EN_FLOW, &f25, p.getNetwork());  // Nault and Karney (2016) */
+
+		int ErrorJ70 = EN_getNodeIndex("J70", &IndexJ70, p.getNetwork());
+		int ErrorJ105 = EN_getNodeIndex("J105", &IndexJ105, p.getNetwork());
+		int ErrorP447 = EN_getLinkIndex("P447", &IndexP447, p.getNetwork());
+		int ErrorP1364 = EN_getLinkIndex("P1364", &IndexP1364, p.getNetwork());
+		
+		double ErrorValJ70 = EN_getNodeValue(IndexJ70, EN_HEAD, &h70, p.getNetwork());
+		double ErrorValJ105 = EN_getNodeValue(IndexJ105, EN_HEAD, &h105, p.getNetwork());
+		double ErrorValP447 = EN_getLinkValue(IndexP447, EN_FLOW, &f447, p.getNetwork());  
+		double ErrorValP1364 = EN_getLinkValue(IndexP1364, EN_FLOW, &f1364, p.getNetwork());  //  Nault and Karney (2018) */
+
         // ... step through each time period
         int t = 0;
         int tstep = 0;
@@ -73,13 +127,37 @@ int EN_runEpanet(const char* inpFile, const char* rptFile, const char* outFile)
         {
             std::cout << "\r    Solving network at "                     //r
                 << Utilities::getTime(t+tstep) << " hrs ...        ";
-
+			
             // ... run solver to compute hydraulics
             err = p.runSolver(&t);
             p.writeMsgLog();
 
             // ... advance solver to next period in time while solving for water quality
             if ( !err ) err = p.advanceSolver(&tstep);
+
+			/*double ErrorValP5 = EN_getLinkValue(IndexP5, EN_FLOW, &f5, p.getNetwork());
+			double ErrorValP8 = EN_getLinkValue(IndexP8, EN_FLOW, &f8, p.getNetwork());
+			double ErrorValT1 = EN_getNodeValue(IndexT1, EN_HEAD, &h1, p.getNetwork());
+			double ErrorValJ2 = EN_getNodeValue(IndexJ2, EN_HEAD, &h2, p.getNetwork());
+
+			myfile << t << " " << f5 << " " << f8 << " " << h1 << " " << h2 << "\n"; // */
+
+			/*double ErrorValJ7 = EN_getNodeValue(IndexJ7, EN_HEAD, &h7, p.getNetwork());
+			double ErrorValJ18 = EN_getNodeValue(IndexJ18, EN_HEAD, &h18, p.getNetwork());
+			double ErrorValJ25 = EN_getNodeValue(IndexJ25, EN_HEAD, &h25, p.getNetwork());
+			double ErrorValP34 = EN_getLinkValue(IndexP34, EN_FLOW, &f34, p.getNetwork());
+			double ErrorValPS2P3 = EN_getLinkValue(IndexPS2P3, EN_FLOW, &fPS2P3, p.getNetwork());
+			double ErrorValP2 = EN_getLinkValue(IndexP2, EN_FLOW, &f2, p.getNetwork());
+			double ErrorValP25 = EN_getLinkValue(IndexP25, EN_FLOW, &f25, p.getNetwork());
+			myfile << t << " " << h7 << " " << h18 << " " << h25 << " " << f34 << " " << fPS2P3 << " " << f2 << " " << f25 << "\n"; // */
+
+			double ErrorValJ70 = EN_getNodeValue(IndexJ70, EN_HEAD, &h70, p.getNetwork());
+			double ErrorValJ105 = EN_getNodeValue(IndexJ105, EN_HEAD, &h105, p.getNetwork());
+			double ErrorValP447 = EN_getLinkValue(IndexP447, EN_FLOW, &f447, p.getNetwork());
+			double ErrorValP1364 = EN_getLinkValue(IndexP1364, EN_FLOW, &f1364, p.getNetwork());
+
+			myfile << t << " " << h70 << " " << h105 << " " << f447 << " " << f1364 << "\n"; // */
+
         } while (tstep > 0 && !err );
         break;
     }
@@ -337,6 +415,11 @@ int EN_getLinkNodes(int index, int* fromNode, int* toNode, EN_Project p)
 int EN_getLinkValue(int index, int param, double* value, EN_Project p)
 {
    return DataManager::getLinkValue(index, param, value, project(p)->getNetwork());
+}
+
+int EN_setLinkValue(int index, int param, double value, EN_Project p)
+{
+	return DataManager::setLinkValue(index, param, value, project(p)->setNetwork());
 }
 
 

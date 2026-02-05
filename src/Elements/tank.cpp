@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -33,6 +33,7 @@ Tank::Tank(string name_) :
     ucfLength(1.0),
     pastHead(0.0),
     pastVolume(0.0),
+	pastArea(0.0),
     pastOutflow(0.0)
 {
     fullDemand = 0.0;

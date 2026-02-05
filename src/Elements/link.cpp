@@ -1,4 +1,4 @@
-/* EPANET 3
+/* EPANET 3.1
  *
  * Copyright (c) 2016 Open Water Analytics
  * Licensed under the terms of the MIT License (see the LICENSE file for details).
@@ -37,12 +37,16 @@ Link::Link(string name_) :
     lossCoeff(0.0),
     initSetting(1.0),
     status(0),
+	previousStatus(0),
     flow(0.0),
+	pastFlow(0.0),
     leakage(0.0),
     hLoss(0.0),
+	pastHloss(0.0),
     hGrad(0.0),
     setting(0.0),
-    quality(0.0)
+    quality(0.0),
+	inertialTerm(0.0)
 {}
 
 /// Destructor
@@ -84,6 +88,7 @@ void Link::initialize(bool reInitFlow)
         else setInitFlow();
     }
     leakage = 0.0;
+	inertialTerm = 0;
 }
 
 //-----------------------------------------------------------------------------
