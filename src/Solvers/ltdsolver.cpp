@@ -308,7 +308,7 @@ void LTDSolver::updateNodeQuality()
             if ( node->type() == Node::JUNCTION )
             {
                 // ... account for dilution from any external negative demand
-                if (node->outflow < 0.0 && node->qualSource == nullptr )
+                if (node->outflow < 0.0 && node->qualSource != nullptr )
                 {
                     volIn[i] -= node->outflow * tstep;
                 }
